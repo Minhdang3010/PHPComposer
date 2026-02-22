@@ -1,0 +1,219 @@
+/**
+ * TẦNG CONTROLLER - ĐIỀU PHỐI VÀ BẮT SỰ KIỆN (BẢN ĐÃ CẬP NHẬT)
+ */
+const CartController = {
+    // 1. Khởi chạy
+    async init() {
+        this.registerEvents(); // Đăng ký sự kiện
+        
+        // Chỉ refresh giỏ hàng nếu đang ở trang có hiển thị giỏ hàng
+        await this.refreshCart();
+        
+        if (document.getElementById("address-list-container")) {
+            await this.refreshAddresses();
+        }
+        
+        if (document.getElementById("voucher-list-container")) {
+            await this.refreshVouchers();
+        }
+    },
+
+    // 2. Đăng ký toàn bộ sự kiện (EventListener)
+    registerEvents() {
+        // --- A. Sự kiện trong Giỏ hàng (Tăng/Giảm/Xóa) ---
+        const cartBody = document.getElementById("cart-body");
+        if (cartBody) {
+            cartBody.addEventListener("click", (e) => {
+                const btnQty = e.target.closest(".btn-change-qty");
+                if (btnQty) this.updateQty(btnQty.dataset.id, parseInt(btnQty.dataset.delta));
+
+                const btnRemove = e.target.closest(".btn-remove-item");
+                if (btnRemove) this.removeItem(btnRemove.dataset.id);
+            });
+        }
+
+        // --- B. Sự kiện THÊM VÀO GIỎ (Từ danh sách sản phẩm) ---
+        // Logic mới bổ sung tại đây
+        const productContainer = document.querySelector(".shop-item-wrap .row");
+        if (productContainer) {
+            productContainer.addEventListener("click", (e) => {
+                const btn = e.target.closest(".btn-add-to-cart");
+                if (btn) {
+                    e.preventDefault();
+                    this.addToCart(btn.dataset.id);
+                }
+            });
+        }
+
+        // --- C. Sự kiện Địa chỉ & Voucher ---
+        const addrContainer = document.getElementById("address-list-container");
+        if (addrContainer) {
+            addrContainer.addEventListener("click", (e) => {
+                const btnEdit = e.target.closest(".btn-edit-address");
+                if (btnEdit) this.openEditAddress(btnEdit.dataset.id);
+
+                const btnAdd = e.target.closest("#btn-add-new-address");
+                if (btnAdd) this.openAddAddress();
+            });
+        }
+
+        const btnApplyVoucher = document.getElementById("btn-apply-voucher-cart");
+        if (btnApplyVoucher) {
+            btnApplyVoucher.addEventListener("click", () => this.handleApplyVoucher());
+        }
+
+        const btnSaveAddr = document.getElementById("btn-save-address");
+        if(btnSaveAddr) {
+             btnSaveAddr.addEventListener("click", () => this.submitAddress());
+        }
+
+        // --- D. Sự kiện Thanh toán ---
+        const btnCheckout = document.getElementById("btn-place-order");
+        if (btnCheckout) {
+            btnCheckout.addEventListener("click", (e) => {
+                e.preventDefault();
+                this.processCheckout();
+            });
+        }
+    },
+
+    // 3. Các hàm Logic nghiệp vụ
+    
+    // Logic mới: Thêm sản phẩm vào giỏ
+    async addToCart(id) {
+        const result = await CartAPI.addToCart(id);
+        if (result.status === "success") {
+            alert(result.message);
+            await this.refreshCart(); // Cập nhật ngay con số trên Header (renderHeaderCount)
+        } else {
+            alert(result.message);
+        }
+    },
+
+    async refreshCart() {
+        const result = await CartAPI.fetchCartInfo();
+        if(!result || !result.items) return;
+
+        const items = Object.values(result.items);
+        CartUI.renderHeaderCount(items.reduce((sum, item) => sum + item.quantity, 0));
+        
+        // Chỉ render bảng nếu đang ở trang giỏ hàng
+        if(document.getElementById("cart-body")) {
+            CartUI.renderCartTable(items);
+            CartUI.renderSummary(result);
+        }
+    },
+
+    // ... (Giữ nguyên các hàm updateQty, removeItem, refreshAddresses, v.v. của bạn bên dưới)
+    async updateQty(id, delta) {
+        const result = await CartAPI.updateQuantity(id, delta);
+        this.refreshDataAfterUpdate(result);
+    },
+
+    async removeItem(id) {
+        if (!confirm("Xóa sản phẩm này?")) return;
+        const result = await CartAPI.removeFromCart(id);
+        this.refreshDataAfterUpdate(result);
+    },
+
+    refreshDataAfterUpdate(result) {
+        const items = Object.values(result.items);
+        CartUI.renderCartTable(items);
+        CartUI.renderSummary(result);
+        CartUI.renderHeaderCount(items.reduce((s, i) => s + i.quantity, 0));
+    },
+
+    async refreshAddresses() {
+        const addresses = await CartAPI.fetchAddresses();
+        CartUI.renderAddressList(addresses);
+    },
+
+    async refreshVouchers() {
+        const vouchers = await CartAPI.fetchVouchers();
+        CartUI.renderVoucherList(vouchers);
+    },
+
+    async handleApplyVoucher() {
+        const selected = document.querySelector('input[name="selected_voucher"]:checked');
+        if (!selected) return alert("Vui lòng chọn 1 mã giảm giá!");
+        
+        const result = await CartAPI.applyVoucher(selected.value);
+        alert(result.message);
+        
+        if (result.status === "success") {
+            await this.refreshCart();
+            const modalEl = document.getElementById("voucherModal");
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+        }
+    },
+
+    async processCheckout() {
+        const selectedAddress = document.querySelector('input[name="address_id"]:checked');
+        if (!selectedAddress) return alert("Vui lòng chọn địa chỉ!");
+        
+        if (!confirm("Xác nhận đặt hàng?")) return;
+
+        const btn = document.getElementById("btn-place-order");
+        if(btn) { btn.innerText = "Đang xử lý..."; btn.disabled = true; }
+
+        try {
+            const result = await CartAPI.placeOrder({
+                address_id: selectedAddress.value,
+                note: document.getElementById("order_note")?.value || "",
+            });
+
+            if (result.status === "success") {
+                alert("Đặt hàng thành công!");
+                window.location.href = `${APP_URL}`;
+            } else {
+                alert(result.message);
+                if(btn) { btn.innerText = "THANH TOÁN NGAY"; btn.disabled = false; }
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Lỗi kết nối!");
+            if(btn) btn.disabled = false;
+        }
+    },
+
+    openAddAddress() {
+        document.getElementById("addressModalLabel").innerText = "Thêm địa chỉ mới";
+        document.getElementById("quickAddressForm").reset();
+        document.getElementById("modal_addr_id").value = "";
+        new bootstrap.Modal(document.getElementById("addressModal")).show();
+    },
+
+    async openEditAddress(id) {
+        const addresses = await CartAPI.fetchAddresses();
+        const addr = addresses.find(a => a.id == id);
+        if (addr) {
+            document.getElementById("addressModalLabel").innerText = "Chỉnh sửa địa chỉ";
+            document.getElementById("modal_addr_id").value = addr.id;
+            document.getElementById("modal_name").value = addr.full_name;
+            document.getElementById("modal_phone").value = addr.phone;
+            document.getElementById("modal_address").value = addr.address_line;
+            new bootstrap.Modal(document.getElementById("addressModal")).show();
+        }
+    },
+    
+    async submitAddress() {
+         const data = {
+            id: document.getElementById("modal_addr_id").value,
+            name: document.getElementById("modal_name").value,
+            phone: document.getElementById("modal_phone").value,
+            address: document.getElementById("modal_address").value,
+        };
+        const res = await CartAPI.saveAddress(data);
+        if (res.status === "success") {
+            const modal = bootstrap.Modal.getInstance(document.getElementById("addressModal"));
+            if(modal) modal.hide();
+            await this.refreshAddresses();
+        } else { 
+            alert("Lỗi khi lưu địa chỉ!"); 
+        }
+    }
+};
+
+// Khởi động
+document.addEventListener("DOMContentLoaded", () => CartController.init());

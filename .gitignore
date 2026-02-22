@@ -1,0 +1,20 @@
+# 1. Thư viện bên thứ ba (Cực nặng, không bao giờ up lên)
+/vendor/
+node_modules/
+
+# 2. File cấu hình bảo mật (Chứa mật khẩu Database, API key)
+.env
+config.php (nếu file này chứa pass cá nhân)
+
+# 3. File rác của hệ điều hành và IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# 4. File Log và Cache (Dữ liệu tạm khi chạy code)
+*.log
+/storage/*.key
+/storage/framework/cache/
+/storage/framework/sessions/
+/storage/framework/views/
