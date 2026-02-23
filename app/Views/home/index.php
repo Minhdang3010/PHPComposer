@@ -315,128 +315,47 @@
             </div>
             <div class="product-wrap wow fadeInUp" data-wow-delay=".25s">
                 <div class="product-slider owl-carousel owl-theme">
-
-                    <div class="product-item">
-                        <div class="product-img">
-                            <span class="type new">Mới</span>
-                            <a href="<?= BASE_URL ?>chi-tiet/1"><img src="<?= BASE_URL ?>public/assets/img/product/e1.png" alt=""></a>
-                            <div class="product-action-wrap">
-                                <div class="product-action">
-                                    <a href="<?= BASE_URL ?>" data-bs-toggle="modal" data-bs-target="#quickview"
-                                        data-tooltip="tooltip" title="Xem nhanh"><i class="far fa-eye"></i></a>
-                                    <a href="<?= BASE_URL ?>" data-tooltip="tooltip" title="Yêu thích"><i class="far fa-heart"></i></a>
-                                    <a href="<?= BASE_URL ?>" data-tooltip="tooltip" title="So sánh sản phẩm"><i class="far fa-arrows-repeat"></i></a>
+                    <?php if (!empty($trendingProducts)): ?>
+                        <?php foreach ($trendingProducts as $item): ?>
+                            <div class="product-item">
+                                <div class="product-img">
+                                    <?php if ($item['sale_price'] > 0 && $item['sale_price'] < $item['price']): ?>
+                                        <span class="type discount">Sale</span>
+                                    <?php else: ?>
+                                        <span class="type new">Mới</span>
+                                    <?php endif; ?>
+                                    <a href="<?= BASE_URL ?>chi-tiet/<?= $item['slug'] ?>"><img src="<?= BASE_URL ?>public/assets/img/product/<?= $item['thumbnail'] ?>" alt=""></a>
+                                    <div class="product-action-wrap">
+                                        <div class="product-action">
+                                            <a href="javascript:void(0)" onclick="ProductController.loadDetailNoReload(<?= $item['id'] ?>, '<?= $item['slug'] ?>')" data-tooltip="tooltip" title="Xem nhanh"><i class="far fa-eye"></i></a>
+                                            <a href="<?= BASE_URL ?>" data-tooltip="tooltip" title="Yêu thích"><i class="far fa-heart"></i></a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="product-content">
+                                    <h3 class="product-title"><a href="<?= BASE_URL ?>chi-tiet/<?= $item['slug'] ?>"><?= htmlspecialchars($item['name']) ?></a></h3>
+                                    <div class="product-rate">
+                                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
+                                    </div>
+                                    <div class="product-bottom">
+                                        <div class="product-price">
+                                            <?php if ($item['sale_price'] > 0 && $item['sale_price'] < $item['price']): ?>
+                                                <del>$<?= number_format($item['price'], 2) ?></del>
+                                                <span>$<?= number_format($item['sale_price'], 2) ?></span>
+                                            <?php else: ?>
+                                                <span>$<?= number_format($item['price'], 2) ?></span>
+                                            <?php endif; ?>
+                                        </div>
+                                        <button type="button" class="product-cart-btn" onclick="CartController.add(<?= $item['id'] ?>)" title="Thêm vào giỏ hàng">
+                                            <i class="far fa-shopping-bag"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="product-content">
-                            <h3 class="product-title"><a href="<?= BASE_URL ?>chi-tiet/1">Apple Blue Airpod</a></h3>
-                            <div class="product-rate">
-                                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
-                            </div>
-                            <div class="product-bottom">
-                                <div class="product-price">
-                                    <span>$250.00</span>
-                                </div>
-                                <button type="button" class="product-cart-btn" data-bs-placement="left"
-                                    data-tooltip="tooltip" title="Thêm vào giỏ hàng">
-                                    <i class="far fa-shopping-bag"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="product-item">
-                        <div class="product-img">
-                            <span class="type hot">Hot</span>
-                            <a href="<?= BASE_URL ?>chi-tiet/1"><img src="<?= BASE_URL ?>public/assets/img/product/b10.png" alt=""></a>
-                            <div class="product-action-wrap">
-                                <div class="product-action">
-                                    <a href="<?= BASE_URL ?>" data-bs-toggle="modal" data-bs-target="#quickview"
-                                        data-tooltip="tooltip" title="Xem nhanh"><i class="far fa-eye"></i></a>
-                                    <a href="<?= BASE_URL ?>" data-tooltip="tooltip" title="Yêu thích"><i class="far fa-heart"></i></a>
-                                    <a href="<?= BASE_URL ?>" data-tooltip="tooltip" title="So sánh sản phẩm"><i class="far fa-arrows-repeat"></i></a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="product-content">
-                            <h3 class="product-title"><a href="<?= BASE_URL ?>chi-tiet/1">Apple Blue Airpod</a></h3>
-                            <div class="product-rate">
-                                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
-                            </div>
-                            <div class="product-bottom">
-                                <div class="product-price">
-                                    <span>$250.00</span>
-                                </div>
-                                <button type="button" class="product-cart-btn" data-bs-placement="left"
-                                    data-tooltip="tooltip" title="Thêm vào giỏ hàng">
-                                    <i class="far fa-shopping-bag"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="product-item">
-                        <div class="product-img">
-                            <span class="type oos">Hết hàng</span>
-                            <a href="<?= BASE_URL ?>chi-tiet/1"><img src="<?= BASE_URL ?>public/assets/img/product/d2.png" alt=""></a>
-                            <div class="product-action-wrap">
-                                <div class="product-action">
-                                    <a href="<?= BASE_URL ?>" data-bs-toggle="modal" data-bs-target="#quickview"
-                                        data-tooltip="tooltip" title="Xem nhanh"><i class="far fa-eye"></i></a>
-                                    <a href="<?= BASE_URL ?>" data-tooltip="tooltip" title="Yêu thích"><i class="far fa-heart"></i></a>
-                                    <a href="<?= BASE_URL ?>" data-tooltip="tooltip" title="So sánh sản phẩm"><i class="far fa-arrows-repeat"></i></a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="product-content">
-                            <h3 class="product-title"><a href="<?= BASE_URL ?>chi-tiet/1">Apple Blue Airpod</a></h3>
-                            <div class="product-rate">
-                                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
-                            </div>
-                            <div class="product-bottom">
-                                <div class="product-price">
-                                    <span>$250.00</span>
-                                </div>
-                                <button type="button" class="product-cart-btn" data-bs-placement="left"
-                                    data-tooltip="tooltip" title="Thêm vào giỏ hàng">
-                                    <i class="far fa-shopping-bag"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="product-item">
-                        <div class="product-img">
-                            <span class="type discount">Giảm 10%</span>
-                            <a href="<?= BASE_URL ?>chi-tiet/1"><img src="<?= BASE_URL ?>public/assets/img/product/f7.png" alt=""></a>
-                            <div class="product-action-wrap">
-                                <div class="product-action">
-                                    <a href="<?= BASE_URL ?>" data-bs-toggle="modal" data-bs-target="#quickview"
-                                        data-tooltip="tooltip" title="Xem nhanh"><i class="far fa-eye"></i></a>
-                                    <a href="<?= BASE_URL ?>" data-tooltip="tooltip" title="Yêu thích"><i class="far fa-heart"></i></a>
-                                    <a href="<?= BASE_URL ?>" data-tooltip="tooltip" title="So sánh sản phẩm"><i class="far fa-arrows-repeat"></i></a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="product-content">
-                            <h3 class="product-title"><a href="<?= BASE_URL ?>chi-tiet/1">Apple Blue Airpod</a></h3>
-                            <div class="product-rate">
-                                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
-                            </div>
-                            <div class="product-bottom">
-                                <div class="product-price">
-                                    <del>$250.00</del>
-                                    <span>$190.00</span>
-                                </div>
-                                <button type="button" class="product-cart-btn" data-bs-placement="left"
-                                    data-tooltip="tooltip" title="Thêm vào giỏ hàng">
-                                    <i class="far fa-shopping-bag"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <p>Chưa có sản phẩm xu hướng.</p>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>

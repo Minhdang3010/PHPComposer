@@ -233,8 +233,6 @@ class Product extends BaseModel
     // Lấy những sản phẩm theo lượt xem
     public function getTrendingProducts($limit = 8)
     {
-        // Lấy sản phẩm sắp xếp theo lượt xem giảm dần (views DESC)
-        // Giả sử bảng products có cột 'views', nếu không thì dùng 'sold' (đã bán)
         $query = "SELECT p.*, 
                      MIN(v.price) as price, 
                      MIN(v.sale_price) as sale_price 
@@ -242,8 +240,8 @@ class Product extends BaseModel
               INNER JOIN product_variants v ON p.id = v.product_id 
               WHERE p.status = 1 
               GROUP BY p.id 
-              ORDER BY p.views DESC, p.sold DESC 
-              LIMIT $limit";
+              ORDER BY p.view_count DESC, p.sold_count DESC 
+              LIMIT $limit"; // Fix tên cột tại đây
 
         $stmt = $this->conn->prepare($query);
         $stmt->execute();

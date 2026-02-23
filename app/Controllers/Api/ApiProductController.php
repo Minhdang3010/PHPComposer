@@ -63,7 +63,7 @@ class ApiProductController extends Controller
     // 5. API: Sản phẩm đang giảm giá (Cho cột 1 trang chủ)
     public function onsale()
     {
-        $products = $this->productModel->getFilteredProducts('', [], 3, 0);
+        $products = $this->productModel->getOnSaleProducts(3); // Fix lại gọi đúng hàm
         $this->responseJson($products);
     }
     // 6. API: Sản phẩm đánh giá cao (Cho cột 3 trang chủ)
