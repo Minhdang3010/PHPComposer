@@ -327,7 +327,7 @@
                                     <a href="<?= BASE_URL ?>chi-tiet/<?= $item['slug'] ?>"><img src="<?= BASE_URL ?>public/assets/img/product/<?= $item['thumbnail'] ?>" alt=""></a>
                                     <div class="product-action-wrap">
                                         <div class="product-action">
-                                            <a href="javascript:void(0)" onclick="ProductController.loadDetailNoReload(<?= $item['id'] ?>, '<?= $item['slug'] ?>')" data-tooltip="tooltip" title="Xem nhanh"><i class="far fa-eye"></i></a>
+                                            <a href="<?= BASE_URL ?>chi-tiet/<?= $item['slug'] ?>" class="js-btn-detail" data-id="<?= $item['id'] ?>" data-slug="<?= $item['slug'] ?>" ...>
                                             <a href="<?= BASE_URL ?>" data-tooltip="tooltip" title="Yêu thích"><i class="far fa-heart"></i></a>
                                         </div>
                                     </div>
@@ -346,7 +346,7 @@
                                                 <span>$<?= number_format($item['price'], 2) ?></span>
                                             <?php endif; ?>
                                         </div>
-                                        <button type="button" class="product-cart-btn" onclick="CartController.add(<?= $item['id'] ?>)" title="Thêm vào giỏ hàng">
+                                        <button type="button" class="product-cart-btn js-btn-add-cart" data-id="<?= $item['id'] ?>" title="Thêm vào giỏ hàng">
                                             <i class="far fa-shopping-bag"></i>
                                         </button>
                                     </div>
@@ -518,12 +518,7 @@
                                                                         <span>$<?= number_format($price, 2) ?></span>
                                                                     <?php endif; ?>
                                                                 </div>
-                                                                <button type="button"
-                                                                    class="product-cart-btn"
-                                                                    onclick="addToCart(<?= $product['id'] ?>)"
-                                                                    title="Thêm vào giỏ">
-                                                                    <i class="far fa-shopping-bag"></i>
-                                                                </button>
+                                                                <button type="button" class="product-cart-btn js-btn-add-cart" data-id="<?= $item['id'] ?>" title="Thêm vào giỏ hàng">
                                                             </div>
                                                         </div>
                                                     </div>
