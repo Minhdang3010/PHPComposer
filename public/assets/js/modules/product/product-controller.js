@@ -155,19 +155,20 @@ const ProductController = {
 
     // Thêm vào danh sách yêu thích
     addToWishlist: async function (id) {
-        console.log("Đang gọi API thêm Yêu thích cho SP ID:", id);
+        const res = await ProductAPI.addToWishlist(id);
         
-        // Tương lai ông sẽ gọi API chỗ này:
-        // const res = await ProductAPI.addToWishlist(id);
-        
-        // Hiện tại xử lý giao diện cho đẹp:
-        alert("Đã thêm sản phẩm ID " + id + " vào danh sách yêu thích!");
-        
-        // Tìm cái icon trái tim vừa bấm và tô màu đỏ cho nó
-        const btn = document.querySelector(`[data-action="add-to-wishlist"][data-id="${id}"] i`);
-        if (btn) {
-            btn.classList.remove('far'); // Bỏ icon rỗng
-            btn.classList.add('fas', 'text-danger'); // Thêm icon đặc màu đỏ
+        if (res.status === "added") {
+            alert(res.message);
+            // Đổi tim rỗng sang tim đỏ
+            const icon = document.querySelector(`[data-action="add-to-wishlist"][data-id="${id}"] i`);
+            if(icon) icon.className = 'fas fa-heart text-danger';
+        } else if (res.status === "removed") {
+            alert(res.message);
+            // Đổi tim đỏ về tim rỗng
+            const icon = document.querySelector(`[data-action="add-to-wishlist"][data-id="${id}"] i`);
+            if(icon) icon.className = 'far fa-heart';
+        } else {
+            alert(res.message); // Thông báo lỗi (chưa đăng nhập chẳng hạn)
         }
     },
 

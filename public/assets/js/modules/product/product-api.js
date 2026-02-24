@@ -65,5 +65,21 @@ const ProductAPI = {
             console.error(error);
             return null;
         }
-    }
+    },
+    
+    // 7. thêm sản phẩm vào wishlist (toggle)
+    async addToWishlist(productId) {
+        try {
+            // Gọi trực tiếp không qua Alias
+            const res = await fetch(`${APP_URL}api/ApiWishlist/toggle`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ product_id: productId }),
+            });
+            return await res.json();
+        } catch (error) {
+            console.error("Lỗi Shipper:", error);
+            return { status: "error", message: "Mất kết nối server rồi ông giáo ạ!" };
+        }
+    },
 };
