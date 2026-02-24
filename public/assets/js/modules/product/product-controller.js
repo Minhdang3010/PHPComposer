@@ -1,119 +1,201 @@
 const ProductController = {
-  // State lưu trữ bộ lọc
-  filterState: {
-    keyword: "",
-    category_id: "",
-    brand_id: "",
-    sort: "newest",
-  },
+    // =====================================================================
+    // 1. STATE: Nơi lưu trữ trạng thái bộ lọc của trang Cửa Hàng
+    // =====================================================================
+    filterState: {
+        keyword: "",
+        category_id: "",
+        brand_id: "",
+        sort: "newest",
+    },
 
-  // --- HÀM KHỞI TẠO (QUAN TRỌNG NHẤT) ---
-  initShopPage: async function () {
-    console.log("Shop Page Init - Event Listeners attaching...");
+    // =====================================================================
+    // 2. KHỞI TẠO TRANG CỬA HÀNG (Lọc, Tìm kiếm, Phân loại)
+    // =====================================================================
+    initShopPage: async function () {
+        console.log("Khởi tạo Trang Cửa Hàng...");
 
-    // 1. Lắng nghe sự kiện TÌM KIẾM (Submit Form)
-    const searchForm = document.getElementById("form-search");
-    if (searchForm) {
-      searchForm.addEventListener("submit", (e) => {
-        e.preventDefault(); // Chặn reload trang
-        const keyword = document.getElementById("keyword-input").value;
-        this.filterState.keyword = keyword;
-        this.loadProducts(); // Gọi hàm load lại
-      });
-    }
-
-    // 2. Lắng nghe sự kiện CLICK DANH MỤC
-    // Tìm tất cả thẻ a có class .js-category-link
-    const categoryLinks = document.querySelectorAll(".js-category-link");
-    categoryLinks.forEach((link) => {
-      link.addEventListener("click", (e) => {
-        e.preventDefault(); // Chặn thẻ a nhảy link #
-
-        // Lấy ID từ attribute data-id
-        const id = link.getAttribute("data-id");
-
-        // Cập nhật state và load lại
-        this.filterState.category_id = id;
-        this.loadProducts();
-
-        // (Optional) UI: Highlight danh mục đang chọn
-        categoryLinks.forEach((l) =>
-          l.parentElement.classList.remove("active"),
-        ); // Xóa active cũ (nếu CSS có hỗ trợ)
-        link.parentElement.classList.add("active"); // Thêm active mới
-      });
-    });
-
-    // 3. Lắng nghe sự kiện CHECKBOX THƯƠNG HIỆU
-    const brandCheckboxes = document.querySelectorAll(".js-brand-checkbox");
-    brandCheckboxes.forEach((checkbox) => {
-      checkbox.addEventListener("change", (e) => {
-        // Logic xử lý chỉ chọn 1 brand (hoặc nhiều brand tùy bạn)
-        // Ở đây demo cách chọn đơn giản: Lấy brand vừa bấm
-
-        if (checkbox.checked) {
-          // Nếu bấm chọn -> gán ID
-          this.filterState.brand_id = checkbox.value;
-
-          // (Optional) Bỏ chọn các cái khác để giống radio button (nếu muốn)
-          brandCheckboxes.forEach((box) => {
-            if (box !== checkbox) box.checked = false;
-          });
-        } else {
-          // Nếu bỏ chọn -> rỗng
-          this.filterState.brand_id = "";
+        // 2.1. Lắng nghe TÌM KIẾM (Submit Form)
+        const searchForm = document.getElementById("form-search");
+        if (searchForm) {
+            searchForm.addEventListener("submit", (e) => {
+                e.preventDefault();
+                this.filterState.keyword = document.getElementById("keyword-input").value;
+                this.loadProducts();
+            });
         }
 
-        this.loadProducts();
-      });
-    });
+        // 2.2. Lắng nghe CLICK DANH MỤC
+        const categoryLinks = document.querySelectorAll(".js-category-link");
+        categoryLinks.forEach((link) => {
+            link.addEventListener("click", (e) => {
+                e.preventDefault();
+                this.filterState.category_id = link.getAttribute("data-id");
+                this.loadProducts();
 
-    // 4. Lắng nghe sự kiện SORT (Select change)
-    const sortSelect = document.getElementById("sort-select");
-    if (sortSelect) {
-      sortSelect.addEventListener("change", (e) => {
-        this.filterState.sort = e.target.value;
-        this.loadProducts();
-      });
-    }
+                // Highlight danh mục đang chọn
+                categoryLinks.forEach((l) => l.parentElement.classList.remove("active"));
+                link.parentElement.classList.add("active");
+            });
+        });
 
-    // Load lần đầu khi vào trang
-    await this.loadProducts();
-  },
+        // 2.3. Lắng nghe CHECKBOX THƯƠNG HIỆU
+        const brandCheckboxes = document.querySelectorAll(".js-brand-checkbox");
+        brandCheckboxes.forEach((checkbox) => {
+            checkbox.addEventListener("change", (e) => {
+                if (checkbox.checked) {
+                    this.filterState.brand_id = checkbox.value;
+                    // Bỏ chọn các brand khác (Chỉ chọn 1)
+                    brandCheckboxes.forEach((box) => {
+                        if (box !== checkbox) box.checked = false;
+                    });
+                } else {
+                    this.filterState.brand_id = "";
+                }
+                this.loadProducts();
+            });
+        });
 
-  // --- HÀM LOAD DỮ LIỆU ---
-  loadProducts: async function () {
-    // Hiển thị loading spinner
-    const container = document.getElementById("shop-product-list");
-    if (container)
-      container.innerHTML =
-        '<div class="col-12 text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>';
+        // 2.4. Lắng nghe SẮP XẾP (Select change)
+        const sortSelect = document.getElementById("sort-select");
+        if (sortSelect) {
+            sortSelect.addEventListener("change", (e) => {
+                this.filterState.sort = e.target.value;
+                this.loadProducts();
+            });
+        }
 
-    // Gọi API
-    const products = await ProductAPI.fetchAll(this.filterState);
+        // Load data lần đầu khi vừa vào trang
+        await this.loadProducts();
+    },
 
-    // Render kết quả
-    ProductUI.renderList(products, "shop-product-list");
-  },
+    // Hàm gọi API và nhờ UI vẽ HTML cho trang Cửa hàng
+    loadProducts: async function () {
+        const container = document.getElementById("shop-product-list");
+        if (container) {
+            container.innerHTML = '<div class="col-12 text-center py-5"><div class="spinner-border text-primary"></div></div>';
+        }
+        // Gọi API lấy data
+        const products = await ProductAPI.fetchAll(this.filterState);
+        // Nhờ thằng UI vẽ ra
+        if (typeof ProductUI !== 'undefined') {
+            ProductUI.renderList(products, "shop-product-list");
+        }
+    },
 
-  // --- CÁC HÀM KHÁC GIỮ NGUYÊN ---
-  initHomePage: async function () {
-    /*...*/
-  },
-  loadDetailNoReload: async function (id, slug) {
-    /*...*/
-  },
-  initHistoryListener: function () {
-    /*...*/
-  },
+    // =====================================================================
+    // 3. KHỞI TẠO TRANG CHỦ (Load 3 cột sản phẩm bằng API)
+    // =====================================================================
+    initHomePage: async function () {
+        console.log("Khởi tạo Trang Chủ: Đang tải 3 cột sản phẩm...");
+
+        if (typeof ProductAPI !== 'undefined' && typeof ProductUI !== 'undefined') {
+            // 3.1. Lấy và vẽ Sản phẩm giảm giá
+            const onSaleProducts = await ProductAPI.fetchOnSale();
+            ProductUI.renderMiniList(onSaleProducts, "home-onsale-list");
+
+            // 3.2. Lấy và vẽ Sản phẩm bán chạy
+            const hotProducts = await ProductAPI.fetchHot();
+            ProductUI.renderMiniList(hotProducts, "home-bestseller-list");
+
+            // 3.3. Lấy và vẽ Sản phẩm đánh giá cao
+            const topRatedProducts = await ProductAPI.fetchTopRated();
+            ProductUI.renderMiniList(topRatedProducts, "home-toprated-list");
+        }
+    },
+
+    // =====================================================================
+    // 4. LƯỚI GÁC CỔNG SỰ KIỆN TOÀN CỤC (EVENT DELEGATION)
+    // =====================================================================
+    initGlobalEvents: function () {
+        document.body.addEventListener("click", (e) => {
+            
+            // 4.1. Sự kiện Xem Chi Tiết
+            const btnDetail = e.target.closest('[data-action="view-detail"]');
+            if (btnDetail) {
+                e.preventDefault();
+                const id = btnDetail.getAttribute("data-id");
+                const slug = btnDetail.getAttribute("data-slug");
+                this.loadDetailNoReload(id, slug);
+            }
+
+            // 4.2. Sự kiện Thêm Yêu Thích
+            const btnWishlist = e.target.closest('[data-action="add-to-wishlist"]');
+            if (btnWishlist) {
+                e.preventDefault();
+                const id = btnWishlist.getAttribute("data-id");
+                this.addToWishlist(id);
+            }
+        });
+    },
+
+    // =====================================================================
+    // 5. CÁC HÀM XỬ LÝ NGHIỆP VỤ LẺ
+    // =====================================================================
+
+    // Xem chi tiết không cần load lại trang (Dùng PushState)
+    loadDetailNoReload: async function (id, slug) {
+        console.log("Đang tải chi tiết SP:", slug);
+        
+        // Nhờ API đi lấy thông tin chi tiết
+        const product = await ProductAPI.fetchDetail(id);
+        
+        if (product && !product.error && typeof ProductUI !== 'undefined') {
+            // Nhờ UI thay đổi nội dung trên màn hình hiện tại
+            ProductUI.updateDetailPage(product);
+            
+            // Chiêu trò JS: Đổi URL trên thanh địa chỉ mà không làm f5 trang web
+            // Giống như việc ông đổi biển số xe khi đang chạy vậy
+            window.history.pushState({ productId: id }, "", `${APP_URL}chi-tiet/${slug}`);
+        } else {
+            // Nếu lỗi API, thì fallback (dự phòng) bằng cách chuyển trang bình thường
+            window.location.href = `${APP_URL}chi-tiet/${slug}`;
+        }
+    },
+
+    // Thêm vào danh sách yêu thích
+    addToWishlist: async function (id) {
+        console.log("Đang gọi API thêm Yêu thích cho SP ID:", id);
+        
+        // Tương lai ông sẽ gọi API chỗ này:
+        // const res = await ProductAPI.addToWishlist(id);
+        
+        // Hiện tại xử lý giao diện cho đẹp:
+        alert("Đã thêm sản phẩm ID " + id + " vào danh sách yêu thích!");
+        
+        // Tìm cái icon trái tim vừa bấm và tô màu đỏ cho nó
+        const btn = document.querySelector(`[data-action="add-to-wishlist"][data-id="${id}"] i`);
+        if (btn) {
+            btn.classList.remove('far'); // Bỏ icon rỗng
+            btn.classList.add('fas', 'text-danger'); // Thêm icon đặc màu đỏ
+        }
+    },
+
+    // Lắng nghe sự kiện người dùng bấm phím Back/Forward của trình duyệt
+    initHistoryListener: function () {
+        window.addEventListener("popstate", (e) => {
+            // Khi user bấm phím Back trên trình duyệt, để an toàn ta load lại trang
+            window.location.reload();
+        });
+    },
 };
 
-// Auto run
+// =====================================================================
+// KHỞI ĐỘNG (AUTO RUN KHI DOM TẢI XONG)
+// =====================================================================
 document.addEventListener("DOMContentLoaded", () => {
-  if (document.getElementById("shop-product-list")) {
-    ProductController.initShopPage();
-  }
+    
+    // Nếu trang hiện tại có cái hộp chứa danh sách Cửa hàng -> Khởi tạo Shop
+    if (document.getElementById("shop-product-list")) {
+        ProductController.initShopPage();
+    }
 
-  // Lắng nghe sự kiện Back/Forward trình duyệt
-  ProductController.initHistoryListener();
+    // Nếu trang hiện tại có cái hộp của Trang chủ -> Khởi tạo Trang chủ
+    if (document.getElementById("home-onsale-list")) {
+        ProductController.initHomePage();
+    }
+
+    // LƯỚI GÁC CỔNG VÀ NÚT BACK (Lúc nào cũng phải chạy)
+    ProductController.initGlobalEvents();
+    ProductController.initHistoryListener();
 });
