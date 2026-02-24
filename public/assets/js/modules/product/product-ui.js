@@ -1,18 +1,24 @@
 const ProductUI = {
-    formatPrice(amount) {
-        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
-    },
+  formatPrice(amount) {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(amount);
+  },
 
-    // 1. Render danh sách lưới (Grid) - Dùng cho trang Shop & Related Product
-    renderList(products, containerId) {
-        const container = document.getElementById(containerId);
-        if (!container) return;
-        
-        if (!products || products.length === 0) {
-            container.innerHTML = '<p>Không có sản phẩm.</p>'; return;
-        }
+  // 1. Render danh sách lưới (Grid) - Dùng cho trang Shop & Related Product
+  renderList(products, containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
 
-        container.innerHTML = products.map(item => `
+    if (!products || products.length === 0) {
+      container.innerHTML = "<p>Không có sản phẩm.</p>";
+      return;
+    }
+
+    container.innerHTML = products
+      .map(
+        (item) => `
             <div class="col-md-6 col-lg-4 col-xl-3">
                 <div class="product-item">
                     <div class="product-img">
@@ -38,42 +44,43 @@ const ProductUI = {
                     </div>
                 </div>
             </div>
-        `).join('');
-    },
+        `,
+      )
+      .join("");
+  },
 
-    // 2. Render danh sách nhỏ (Widget) - Dùng cho 3 cột trang chủ
-    renderMiniList(products, containerId) {
-        const container = document.getElementById(containerId);
-        if (!container) return;
+  // 2. Render danh sách nhỏ (Widget) - Dùng cho 3 cột trang chủ
+  renderMiniList(products, containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
 
-        if (!products || products.length === 0) {
-            container.innerHTML = '<p class="py-2">Chưa có sản phẩm nào.</p>';
-            return;
-        }
+    if (!products || products.length === 0) {
+      container.innerHTML = '<p class="py-2">Chưa có sản phẩm nào.</p>';
+      return;
+    }
 
-        // Map đúng cấu trúc HTML mà ông vừa gửi
-        container.innerHTML = products.map(item => {
-            // Logic hiển thị giá (có sale hay không)
-            let priceHtml = '';
-            if (item.sale_price > 0 && item.sale_price < item.price) {
-                priceHtml = `
+    container.innerHTML = products
+      .map((item) => {
+        let priceHtml = "";
+        if (item.sale_price > 0 && item.sale_price < item.price) {
+          priceHtml = `
                     <del>${this.formatPrice(item.price)}</del>
                     <span>${this.formatPrice(item.sale_price)}</span>
                 `;
-            } else {
-                priceHtml = `<span>${this.formatPrice(item.price)}</span>`;
-            }
+        } else {
+          priceHtml = `<span>${this.formatPrice(item.price)}</span>`;
+        }
 
-            return `
+        return `
             <div class="product-list-item">
                 <div class="product-list-img">
-                    <a href="javascript:void(0)" onclick="ProductController.loadDetailNoReload(${item.id}, '${item.slug}')">
+                    <a href="${APP_URL}chi-tiet/${item.slug}" class="js-btn-detail" data-action="view-detail" data-id="${item.id}" data-slug="${item.slug}">
                         <img src="${APP_URL}public/assets/img/product/${item.thumbnail}" alt="${item.name}">
                     </a>
                 </div>
                 <div class="product-list-content">
                     <h4>
-                        <a href="javascript:void(0)" onclick="ProductController.loadDetailNoReload(${item.id}, '${item.slug}')">
+                        <a href="${APP_URL}chi-tiet/${item.slug}" class="js-btn-detail" data-action="view-detail" data-id="${item.id}" data-slug="${item.slug}">
                             ${item.name}
                         </a>
                     </h4>
@@ -84,38 +91,54 @@ const ProductUI = {
                         ${priceHtml}
                     </div>
                 </div>
-                <button type="button"
-                    class="product-list-btn"
-                    onclick="CartController.add(${item.id})"
-                    title="Thêm vào giỏ hàng">
-                    <i class="far fa-shopping-bag"></i>
-                </button>
+                
+                <div class="d-flex flex-column gap-2">
+                    <button type="button" class="product-list-btn" data-action="add-to-cart" data-id="${item.id}" title="Thêm vào giỏ hàng">
+                        <i class="far fa-shopping-bag"></i>
+                    </button>
+                    <button type="button" class="product-list-btn" data-action="add-to-wishlist" data-id="${item.id}" title="Thêm yêu thích">
+                        <i class="far fa-heart"></i>
+                    </button>
+                </div>
             </div>
             `;
-        }).join('');
-    },
+      })
+      .join("");
+  },
 
-    // 3. Render LẠI toàn bộ trang chi tiết (Khi click mà không reload)
-    updateDetailPage(product) {
-        // Cập nhật ảnh
-        const mainImg = document.querySelector('.shop-single-gallery .thumb-img img');
-        if (mainImg) mainImg.src = `${APP_URL}public/assets/img/product/${product.thumbnail}`;
+  // 3. Render LẠI toàn bộ trang chi tiết (Khi click mà không reload)
+  updateDetailPage(product) {
+    // Cập nhật ảnh
+    const mainImg = document.querySelector(
+      ".shop-single-gallery .thumb-img img",
+    );
+    if (mainImg)
+      mainImg.src = `${APP_URL}public/assets/img/product/${product.thumbnail}`;
 
-        // Cập nhật thông tin text
-        document.querySelectorAll('.shop-single-title').forEach(el => el.innerText = product.name);
-        document.querySelectorAll('.shop-single-price .amount').forEach(el => el.innerText = this.formatPrice(product.price));
-        
-        // Cập nhật mô tả ngắn & dài
-        const shortDesc = document.querySelector('.shop-single-desc');
-        const longDesc = document.querySelector('#description .desc-content p'); // Tab mô tả
-        if (shortDesc) shortDesc.innerText = product.description ? product.description.substring(0, 150) + '...' : '';
-        if (longDesc) longDesc.innerText = product.description;
+    // Cập nhật thông tin text
+    document
+      .querySelectorAll(".shop-single-title")
+      .forEach((el) => (el.innerText = product.name));
+    document
+      .querySelectorAll(".shop-single-price .amount")
+      .forEach((el) => (el.innerText = this.formatPrice(product.price)));
 
-        // Cập nhật Breadcrumb (Thanh điều hướng)
-        const breadcrumbActive = document.querySelector('.breadcrumb-menu li.active');
-        if (breadcrumbActive) breadcrumbActive.innerText = product.name;
+    // Cập nhật mô tả ngắn & dài
+    const shortDesc = document.querySelector(".shop-single-desc");
+    const longDesc = document.querySelector("#description .desc-content p"); // Tab mô tả
+    if (shortDesc)
+      shortDesc.innerText = product.description
+        ? product.description.substring(0, 150) + "..."
+        : "";
+    if (longDesc) longDesc.innerText = product.description;
 
-        // Scroll lên đầu trang cho người dùng thấy
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    // Cập nhật Breadcrumb (Thanh điều hướng)
+    const breadcrumbActive = document.querySelector(
+      ".breadcrumb-menu li.active",
+    );
+    if (breadcrumbActive) breadcrumbActive.innerText = product.name;
+
+    // Scroll lên đầu trang cho người dùng thấy
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  },
 };

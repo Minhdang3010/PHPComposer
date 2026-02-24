@@ -32,18 +32,16 @@ const CartController = {
             });
         }
 
-        // --- B. Sự kiện THÊM VÀO GIỎ (Từ danh sách sản phẩm) ---
-        // Logic mới bổ sung tại đây
-        const productContainer = document.querySelector(".shop-item-wrap .row");
-        if (productContainer) {
-            productContainer.addEventListener("click", (e) => {
-                const btn = e.target.closest(".btn-add-to-cart");
-                if (btn) {
-                    e.preventDefault();
-                    this.addToCart(btn.dataset.id);
-                }
-            });
-        }
+        // --- B. Sự kiện THÊM VÀO GIỎ (Từ bất kỳ đâu trên trang) ---
+        document.body.addEventListener("click", (e) => {
+            // Tìm xem người dùng có click vào thẻ nào mang data-action="add-to-cart" không
+            const btnCart = e.target.closest('[data-action="add-to-cart"]');
+            if (btnCart) {
+                e.preventDefault(); // Chặn nhảy trang
+                const productId = btnCart.getAttribute('data-id');
+                this.addToCart(productId); // Gọi hàm thêm giỏ hàng có sẵn ở dưới
+            }
+        });
 
         // --- C. Sự kiện Địa chỉ & Voucher ---
         const addrContainer = document.getElementById("address-list-container");
@@ -66,7 +64,7 @@ const CartController = {
         if(btnSaveAddr) {
              btnSaveAddr.addEventListener("click", () => this.submitAddress());
         }
-
+``
         // --- D. Sự kiện Thanh toán ---
         const btnCheckout = document.getElementById("btn-place-order");
         if (btnCheckout) {
