@@ -313,6 +313,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="product-wrap wow fadeInUp" data-wow-delay=".25s">
                 <div class="product-slider owl-carousel owl-theme">
                     <?php if (!empty($trendingProducts)): ?>
@@ -324,16 +325,29 @@
                                     <?php else: ?>
                                         <span class="type new">Mới</span>
                                     <?php endif; ?>
-                                    <a href="<?= BASE_URL ?>chi-tiet/<?= $item['slug'] ?>"><img src="<?= BASE_URL ?>public/assets/img/product/<?= $item['thumbnail'] ?>" alt=""></a>
+
+                                    <a href="<?= BASE_URL ?>chi-tiet/<?= $item['slug'] ?>" data-action="view-detail" data-id="<?= $item['id'] ?>" data-slug="<?= $item['slug'] ?>">
+                                        <img src="<?= BASE_URL ?>public/assets/img/product/<?= $item['thumbnail'] ?>" alt="<?= htmlspecialchars($item['name']) ?>">
+                                    </a>
+
                                     <div class="product-action-wrap">
                                         <div class="product-action">
-                                            <a href="<?= BASE_URL ?>chi-tiet/<?= $item['slug'] ?>" class="js-btn-detail" data-id="<?= $item['id'] ?>" data-slug="<?= $item['slug'] ?>" ...>
-                                            <a href="<?= BASE_URL ?>" data-tooltip="tooltip" title="Yêu thích"><i class="far fa-heart"></i></a>
+                                            <a href="<?= BASE_URL ?>chi-tiet/<?= $item['slug'] ?>" data-action="view-detail" data-id="<?= $item['id'] ?>" data-slug="<?= $item['slug'] ?>" data-tooltip="tooltip" title="Xem nhanh">
+                                                <i class="far fa-eye"></i>
+                                            </a>
+
+                                            <a href="javascript:void(0)" data-action="add-to-wishlist" data-id="<?= $item['id'] ?>" data-tooltip="tooltip" title="Yêu thích">
+                                                <i class="far fa-heart"></i>
+                                            </a>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="product-content">
-                                    <h3 class="product-title"><a href="<?= BASE_URL ?>chi-tiet/<?= $item['slug'] ?>"><?= htmlspecialchars($item['name']) ?></a></h3>
+                                    <h3 class="product-title">
+                                        <a href="<?= BASE_URL ?>chi-tiet/<?= $item['slug'] ?>" data-action="view-detail" data-id="<?= $item['id'] ?>" data-slug="<?= $item['slug'] ?>">
+                                            <?= htmlspecialchars($item['name']) ?>
+                                        </a>
+                                    </h3>
                                     <div class="product-rate">
                                         <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
                                     </div>
@@ -346,7 +360,7 @@
                                                 <span>$<?= number_format($item['price'], 2) ?></span>
                                             <?php endif; ?>
                                         </div>
-                                        <button type="button" class="product-cart-btn js-btn-add-cart" data-id="<?= $item['id'] ?>" title="Thêm vào giỏ hàng">
+                                        <button type="button" class="product-cart-btn" data-action="add-to-cart" data-id="<?= $item['id'] ?>" title="Thêm vào giỏ hàng">
                                             <i class="far fa-shopping-bag"></i>
                                         </button>
                                     </div>
@@ -441,6 +455,7 @@
                 <div class="col-lg-9">
                     <div class="row">
                         <div class="col-12 wow fadeInDown" data-wow-delay=".25s">
+
                             <div class="site-heading-inline">
                                 <h2 class="site-title">Sản phẩm phổ biến</h2>
                                 <a href="<?= BASE_URL ?>cua-hang">Tất cả sản phẩm <i class="fas fa-angle-double-right"></i></a>
@@ -485,20 +500,34 @@
                                                 <div class="col-md-6 col-lg-4 col-xl-3">
                                                     <div class="product-item">
                                                         <div class="product-img">
-                                                            <span class="type new">Mới</span> <a href="<?= BASE_URL ?>chi-tiet/<?= $product['slug'] ?>">
-                                                                <img src="<?= BASE_URL ?>public/assets/img/product/<?= $product['thumbnail'] ?>" alt="">
+                                                            <?php
+                                                            $price = $product['price'] ?? 0;
+                                                            $sale = $product['sale_price'] ?? null;
+                                                            ?>
+                                                            <?php if ($sale && $sale < $price): ?>
+                                                                <span class="type discount">Sale</span>
+                                                            <?php else: ?>
+                                                                <span class="type new">Mới</span>
+                                                            <?php endif; ?>
+
+                                                            <a href="<?= BASE_URL ?>chi-tiet/<?= $product['slug'] ?>" data-action="view-detail" data-id="<?= $product['id'] ?>" data-slug="<?= $product['slug'] ?>">
+                                                                <img src="<?= BASE_URL ?>public/assets/img/product/<?= $product['thumbnail'] ?>" alt="<?= htmlspecialchars($product['name']) ?>">
                                                             </a>
 
                                                             <div class="product-action-wrap">
                                                                 <div class="product-action">
-                                                                    <a href="#" data-tooltip="tooltip" title="Xem nhanh"><i class="far fa-eye"></i></a>
-                                                                    <a href="#" data-tooltip="tooltip" title="Yêu thích"><i class="far fa-heart"></i></a>
+                                                                    <a href="<?= BASE_URL ?>chi-tiet/<?= $product['slug'] ?>" data-action="view-detail" data-id="<?= $product['id'] ?>" data-slug="<?= $product['slug'] ?>" data-tooltip="tooltip" title="Xem nhanh">
+                                                                        <i class="far fa-eye"></i>
+                                                                    </a>
+                                                                    <a href="javascript:void(0)" data-action="add-to-wishlist" data-id="<?= $product['id'] ?>" data-tooltip="tooltip" title="Yêu thích">
+                                                                        <i class="far fa-heart"></i>
+                                                                    </a>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                         <div class="product-content">
                                                             <h3 class="product-title">
-                                                                <a href="<?= BASE_URL ?>chi-tiet/<?= $product['slug'] ?>">
+                                                                <a href="<?= BASE_URL ?>chi-tiet/<?= $product['slug'] ?>" data-action="view-detail" data-id="<?= $product['id'] ?>" data-slug="<?= $product['slug'] ?>">
                                                                     <?= htmlspecialchars($product['name']) ?>
                                                                 </a>
                                                             </h3>
@@ -507,10 +536,6 @@
                                                             </div>
                                                             <div class="product-bottom">
                                                                 <div class="product-price">
-                                                                    <?php
-                                                                    $price = $product['price'] ?? 0;
-                                                                    $sale = $product['sale_price'] ?? null;
-                                                                    ?>
                                                                     <?php if ($sale && $sale < $price): ?>
                                                                         <del>$<?= number_format($price, 2) ?></del>
                                                                         <span>$<?= number_format($sale, 2) ?></span>
@@ -518,7 +543,9 @@
                                                                         <span>$<?= number_format($price, 2) ?></span>
                                                                     <?php endif; ?>
                                                                 </div>
-                                                                <button type="button" class="product-cart-btn js-btn-add-cart" data-id="<?= $item['id'] ?>" title="Thêm vào giỏ hàng">
+                                                                <button type="button" class="product-cart-btn" data-action="add-to-cart" data-id="<?= $product['id'] ?>" title="Thêm vào giỏ hàng">
+                                                                    <i class="far fa-shopping-bag"></i>
+                                                                </button>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -634,7 +661,7 @@
                     <div class="product-list-box">
                         <h2 class="product-list-title">Đánh giá cao</h2>
                         <div id="home-toprated-list">
-                            <p class="text-muted small py-3">Đang tải dữ liệu
+                            <p class="text-muted small py-3">Đang tải dữ liệu...
                         </div>
                     </div>
                 </div>
