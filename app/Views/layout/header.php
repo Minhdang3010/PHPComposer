@@ -21,8 +21,6 @@
     <link rel="stylesheet" href="<?= BASE_URL ?>public/assets/css/jquery-ui.min.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>public/assets/css/nice-select.min.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>public/assets/css/style.css">
-
-
 </head>
 
 <body class="home-2">
@@ -42,18 +40,19 @@
                         <div class="col-12 col-md-6 col-lg-6 col-xl-5">
                             <div class="header-top-left">
                                 <ul class="header-top-list">
-                                    <li><a href="<?= BASE_URL ?>dang-nhap">
+                                    <li>
+                                        <a href="<?= isset($_SESSION['user_id']) ? BASE_URL . 'tai-khoan' : BASE_URL . 'dang-nhap' ?>">
                                             <i class="far fa-envelopes"></i>
                                             <span>
                                                 <?php
-                                                // Kiểm tra nếu đã đăng nhập thì hiện email user, ngược lại hiện email hỗ trợ
                                                 if (isset($_SESSION['user_email'])) {
                                                     echo htmlspecialchars($_SESSION['user_email']);
                                                 } else {
-                                                    echo 'Bạn chưa đăng nhập!'; // Email mặc định của cửa hàng
+                                                    echo 'Bạn chưa đăng nhập!';
                                                 }
                                                 ?>
-                                            </span></a>
+                                            </span>
+                                        </a>
                                     </li>
                                     <li><a href="tel:+840376630401"><i class="far fa-headset"></i>+84 0376 630 401</a></li>
                                     <li class="help"><a href="<?= BASE_URL ?>lien-he"><i class="far fa-comment-question"></i> Cần giúp đỡ?</a></li>
@@ -110,63 +109,48 @@
                                 <ul class="navbar-nav justify-content-end flex-grow-1">
                                     <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>">Trang chủ</a></li>
 
-                                    <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>danh-muc">Cửa Hàng</a></li>
-
-
-                                    <!-- <li class="nav-item dropdown">
-                                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Trang</a>
-                                        <ul class="dropdown-menu fade-down">
-                                            <li><a class="dropdown-item" href="<?= BASE_URL ?>quen-mat-khau">Quên mật khẩu</a></li>
-                                            <li><a class="dropdown-item" href="<?= BASE_URL ?>chinh-sach">Chính sách đổi trả</a></li>
-                                            <li><a class="dropdown-item" href="<?= BASE_URL ?>hoa-don">Hóa đơn</a></li>
-                                            <li><a class="dropdown-item" href="<?= BASE_URL ?>cau-hoi-thuong-gap">Câu hỏi thường gặp</a></li>
-                                            <li><a class="dropdown-item" href="<?= BASE_URL ?>404">Lỗi 404</a></li>
-                                        </ul>
-                                    </li> -->
-
-                                    <!-- <li class="nav-item dropdown">
-                                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Cửa hàng</a>
-                                        <ul class="dropdown-menu fade-down">
-                                            <li><a class="dropdown-item" href="<?= BASE_URL ?>cua-hang">Tất cả sản phẩm</a></li>
-                                            <li><a class="dropdown-item" href="<?= BASE_URL ?>tim-kiem">Tìm kiếm sản phẩm</a></li>
-                                            <li><a class="dropdown-item" href="<?= BASE_URL ?>gio-hang">Giỏ hàng</a></li>
-                                            <li><a class="dropdown-item" href="<?= BASE_URL ?>thanh-toan">Thanh toán</a></li>
-                                            <li><a class="dropdown-item" href="<?= BASE_URL ?>hoan-tat-don-hang">Hoàn tất thanh toán</a></li>
-                                        </ul>
-                                    </li> -->
+                                    <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>cua-hang">Cửa Hàng</a></li>
 
                                     <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>lien-he">Liên hệ</a></li>
-
 
                                     <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>gioi-thieu">Giới thiệu</a></li>
 
                                     <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>cau-hoi-thuong-gap">FAQ</a></li>
 
-
                                     <li class="nav-item dropdown">
-                                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Tài khoản</a>
-                                        <ul class="dropdown-menu fade-down">
-                                            <li><a class="dropdown-item" href="<?= BASE_URL ?>tai-khoan">Bảng điều khiển</a></li>
-                                            <li><a class="dropdown-item" href="<?= BASE_URL ?>ho-so">Hồ sơ của tôi</a></li>
-                                            <li><a class="dropdown-item" href="<?= BASE_URL ?>don-hang-cua-toi">Danh sách đơn hàng</a></li>
-                                            <li><a class="dropdown-item" href="<?= BASE_URL ?>theo-doi-don-hang">Theo dõi đơn hàng</a></li>
-                                            <li><a class="dropdown-item" href="<?= BASE_URL ?>yeu-thich">Sản phẩm yêu thích</a></li>
-                                            <li><a class="dropdown-item" href="<?= BASE_URL ?>so-dia-chi">Danh sách địa chỉ</a></li>
-                                            <li><a class="dropdown-item" href="<?= BASE_URL ?>cai-dat-tai-khoan">Cài đặt</a></li>
-                                            <li><a class="dropdown-item" href="<?= BASE_URL ?>dang-nhap">Đăng nhập</a></li>
-                                            <li><a class="dropdown-item" href="<?= BASE_URL ?>dang-ky">Đăng ký</a></li>
-                                            <li><a class="dropdown-item" href="<?= BASE_URL ?>dang-xuat">Đăng xuất</a></li>
-                                        </ul>
+                                        <?php if (isset($_SESSION['user_id'])): ?>
+                                            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                                                <i class="far fa-user-circle"></i> Xin chào, <?= htmlspecialchars(explode(' ', $_SESSION['user_name'])[0]) ?>
+                                            </a>
+                                            <ul class="dropdown-menu fade-down">
+                                                <li><a class="dropdown-item" href="<?= BASE_URL ?>tai-khoan">Bảng điều khiển</a></li>
+                                                <li><a class="dropdown-item" href="<?= BASE_URL ?>ho-so">Hồ sơ của tôi</a></li>
+                                                <li><a class="dropdown-item" href="<?= BASE_URL ?>don-hang-cua-toi">Danh sách đơn hàng</a></li>
+                                                <li><a class="dropdown-item" href="<?= BASE_URL ?>yeu-thich">Sản phẩm yêu thích</a></li>
+                                                <li><a class="dropdown-item" href="<?= BASE_URL ?>so-dia-chi">Danh sách địa chỉ</a></li>
+                                                <li>
+                                                    <hr class="dropdown-divider">
+                                                </li>
+                                                <li><a class="dropdown-item text-danger" href="<?= BASE_URL ?>dang-xuat"><i class="far fa-sign-out"></i> Đăng xuất</a></li>
+                                            </ul>
+                                        <?php else: ?>
+                                            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                                                Tài khoản
+                                            </a>
+                                            <ul class="dropdown-menu fade-down">
+                                                <li><a class="dropdown-item" href="<?= BASE_URL ?>dang-nhap">Đăng nhập</a></li>
+                                                <li><a class="dropdown-item" href="<?= BASE_URL ?>dang-ky">Đăng ký</a></li>
+                                            </ul>
+                                        <?php endif; ?>
                                     </li>
-
-
                                 </ul>
                                 <div class="nav-right icon">
                                     <a href="#" class="nav-right-link search-box-outer"><i class="far fa-search"></i></a>
-                                    <a href="<?= BASE_URL ?>yeu-thich" class="nav-right-link"><i class="far fa-heart"></i><span>2</span></a>
+                                    <a href="<?= BASE_URL ?>yeu-thich" class="nav-right-link"><i class="far fa-heart"></i><span class="wishlist-count">0</span></a>
                                     <a href="<?= BASE_URL ?>gio-hang" class="nav-right-link">
                                         <i class="far fa-shopping-bag"></i>
-                                        <span class="cart-count">0</span> </a>
+                                        <span class="cart-count">0</span>
+                                    </a>
                                 </div>
                             </div>
                         </div>

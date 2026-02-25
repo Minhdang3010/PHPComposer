@@ -18,8 +18,7 @@ class Product extends BaseModel
      */
     public function getFilteredProducts($keyword = null, $filters = [], $limit = null, $offset = null)
     {
-        // 1. SELECT rõ ràng: Lấy tất cả cột của bảng products
-        //    và lấy thêm giá thấp nhất từ bảng product_variants
+        // 1. SELECT rõ ràng
         $query = "SELECT products.*, 
                          MIN(product_variants.price) as price, 
                          MIN(product_variants.sale_price) as sale_price 
@@ -29,20 +28,25 @@ class Product extends BaseModel
 
         $params = [];
 
-        // 2. Tìm kiếm từ khóa (Lọc theo tên hoặc mô tả trong bảng products)
+        // 2. Lọc theo từ khóa
         if (!empty($keyword)) {
             $query .= " AND (products.name LIKE :keyword OR products.description LIKE :keyword)";
             $params[':keyword'] = '%' . $keyword . '%';
         }
 
-        // 3. Lọc theo danh mục (Cột category_id nằm trong bảng products)
+        // 3. Lọc theo danh mục
         if (!empty($filters['category_id'])) {
             $query .= " AND products.category_id = :category_id";
             $params[':category_id'] = $filters['category_id'];
         }
 
-        // 4. Lọc theo khoảng giá (Cột price nằm trong bảng product_variants)
-        //    Logic: Nếu có giá sale thì lấy giá sale, không thì lấy giá gốc để so sánh
+        // 4. Lọc theo thương hiệu (MỚI THÊM)
+        if (!empty($filters['brand_id'])) {
+            $query .= " AND products.brand_id = :brand_id";
+            $params[':brand_id'] = $filters['brand_id'];
+        }
+
+        // 5. Lọc theo khoảng giá
         if (!empty($filters['min_price']) && $filters['min_price'] > 0) {
             $query .= " AND (COALESCE(product_variants.sale_price, product_variants.price) >= :min_price)";
             $params[':min_price'] = $filters['min_price'];
@@ -53,13 +57,20 @@ class Product extends BaseModel
             $params[':max_price'] = $filters['max_price'];
         }
 
-        // 5. GROUP BY: Gom nhóm theo ID sản phẩm để tránh bị lặp lại do bảng variants có nhiều dòng
+        // 6. GROUP BY
         $query .= " GROUP BY products.id";
 
-        // 6. Sắp xếp mặc định: Sản phẩm mới nhất lên đầu
-        $query .= " ORDER BY products.created_at DESC";
+        // 7. Sắp xếp (CẬP NHẬT: Nhận biến sort từ frontend)
+        $sort = $filters['sort'] ?? 'newest';
+        if ($sort === 'price_asc') {
+            $query .= " ORDER BY price ASC"; // Giá thấp đến cao
+        } elseif ($sort === 'price_desc') {
+            $query .= " ORDER BY price DESC"; // Giá cao đến thấp
+        } else {
+            $query .= " ORDER BY products.created_at DESC"; // Mới nhất (Mặc định)
+        }
 
-        // 7. Phân trang (LIMIT và OFFSET)
+        // 8. Phân trang
         if ($limit) {
             $query .= " LIMIT :limit";
             if ($offset) {
@@ -67,26 +78,22 @@ class Product extends BaseModel
             }
         }
 
-        // Chuẩn bị và thực thi câu lệnh
+        // Chuẩn bị và thực thi
         $stmt = $this->conn->prepare($query);
 
-        // Gán giá trị vào các tham số (:keyword, :min_price...)
         foreach ($params as $key => $val) {
             $stmt->bindValue($key, $val);
         }
 
-        // Gán tham số cho phân trang (bắt buộc kiểu số nguyên INT)
         if ($limit) {
-            $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+            $stmt->bindValue(':limit', (int)$limit, \PDO::PARAM_INT);
             if ($offset) {
-                $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
+                $stmt->bindValue(':offset', (int)$offset, \PDO::PARAM_INT);
             }
         }
 
         $stmt->execute();
-
-        // Trả về kết quả dưới dạng mảng kết hợp
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
     public function getProductsByBrand($brand_id)

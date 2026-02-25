@@ -114,9 +114,9 @@ const ProductController = {
             const btnDetail = e.target.closest('[data-action="view-detail"]');
             if (btnDetail) {
                 e.preventDefault();
-                const id = btnDetail.getAttribute("data-id");
-                const slug = btnDetail.getAttribute("data-slug");
-                this.loadDetailNoReload(id, slug);
+                // Ép trình duyệt bay thẳng tới trang chi tiết
+                window.location.href = btnDetail.getAttribute("href");
+                return;
             }
 
             // 4.2. Sự kiện Thêm Yêu Thích
@@ -177,6 +177,37 @@ const ProductController = {
             // Khi user bấm phím Back trên trình duyệt, để an toàn ta load lại trang
             window.location.reload();
         });
+    },
+
+    // Hàm gọi API và nhờ UI vẽ HTML cho trang Cửa hàng
+    loadProducts: async function () {
+        const container = document.getElementById("shop-product-list");
+        if (container) {
+            // Hiệu ứng loading nhấp nháy cho xịn
+            container.innerHTML = `
+                <div class="col-12 text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Đang tải...</span>
+                    </div>
+                </div>`;
+        }
+
+        // Gọi API lấy data
+        const products = await ProductAPI.fetchAll(this.filterState);
+        
+        // Nhờ thằng UI vẽ ra
+        if (typeof ProductUI !== 'undefined') {
+            ProductUI.renderList(products, "shop-product-list");
+        }
+
+        // TÍNH NĂNG NÂNG CAO: Cập nhật URL trình duyệt mà KHÔNG reload trang
+        // Giúp người dùng copy link gửi cho bạn bè vẫn giữ nguyên bộ lọc
+        const cleanState = Object.fromEntries(
+            Object.entries(this.filterState).filter(([_, v]) => v !== "")
+        );
+        const queryString = new URLSearchParams(cleanState).toString();
+        const newUrl = queryString ? `${APP_URL}product?${queryString}` : `${APP_URL}product`;
+        window.history.pushState({ path: newUrl }, "", newUrl);
     },
 };
 

@@ -36,7 +36,24 @@ class CartController extends Controller
             'orderCode' => $orderCode
         ]);
     }
+    // Cập nhật hàm wishlist trong app/Controllers/CartController.php
     public function wishlist() {
-        $this -> view("cart/wishlist");
+        // 1. Chặn cổ bắt đăng nhập
+        if (empty($_SESSION['user_id'])) {
+            $_SESSION['error'] = "Vui lòng đăng nhập để xem danh sách yêu thích.";
+            header("Location: " . BASE_URL . "dang-nhap");
+            exit;
+        }
+
+        // 2. Nhờ Bếp trưởng lấy dữ liệu
+        $userId = $_SESSION['user_id'];
+        $wishlistModel = $this->model('Wishlist');
+        $items = $wishlistModel->getUserWishlist($userId);
+
+        // 3. Đưa cho phục vụ (View) mang ra bàn
+        $this->view("cart/wishlist", [
+            'title' => 'Sản phẩm yêu thích',
+            'wishlistItems' => $items
+        ]);
     }
 }
