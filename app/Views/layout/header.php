@@ -109,7 +109,7 @@
                                 <ul class="navbar-nav justify-content-end flex-grow-1">
                                     <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>">Trang chủ</a></li>
 
-                                    <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>danh-muc">Cửa Hàng</a></li>
+                                    <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>cua-hang">Cửa Hàng</a></li>
 
                                     <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>lien-he">Liên hệ</a></li>
 
