@@ -78,4 +78,13 @@ class ApiProductController extends Controller
         $products = $this->productModel->getTrendingProducts(8);
         $this->responseJson($products);
     }
+    // 8. Lấy danh sách biến thể của sản phẩm
+    public function variants($id = null)
+    {
+        if (!$id) {
+            $this->responseJson(['status' => 'error', 'message' => 'Thiếu ID sản phẩm'], 400);
+        }
+        $variants = $this->productModel->getProductVariants($id);
+        $this->responseJson($variants);
+    }
 }

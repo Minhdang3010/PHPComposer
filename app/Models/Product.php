@@ -254,4 +254,18 @@ class Product extends BaseModel
         $stmt->execute();
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
+    // Lấy tất cả biến thể của 1 sản phẩm kèm tên màu và size
+    public function getProductVariants($product_id)
+    {
+        $query = "SELECT pv.*, c.name as color_name, s.name as size_name
+                  FROM product_variants pv
+                  LEFT JOIN colors c ON pv.color_id = c.id
+                  LEFT JOIN sizes s ON pv.size_id = s.id
+                  WHERE pv.product_id = :product_id";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindValue(':product_id', $product_id, \PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
 }
