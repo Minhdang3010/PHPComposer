@@ -202,4 +202,37 @@ const ProductUI = {
     // Scroll lên đầu trang cho người dùng thấy
     window.scrollTo({ top: 0, behavior: "smooth" });
   },
+  // 4. Cập nhật thông tin biến thể trên trang Chi tiết
+  updateVariantInfo(variant) {
+    if (!variant) return;
+
+    const priceDisplay = document.getElementById('display-price');
+    const inputVariantId = document.getElementById('selected-variant-id');
+    const skuDisplay = document.getElementById('display-sku');
+    const stockDisplay = document.getElementById('display-stock');
+
+    // Cập nhật input ẩn để chuẩn bị submit
+    if (inputVariantId) inputVariantId.value = variant.id;
+
+    // Cập nhật giá mượt mà
+    const price = parseFloat(variant.price);
+    const salePrice = parseFloat(variant.sale_price);
+
+    if (salePrice > 0 && salePrice < price) {
+      priceDisplay.innerHTML = `
+        <del>${this.formatPrice(price)}</del> 
+        <span class="amount">${this.formatPrice(salePrice)}</span> 
+        <span class="discount-percentage">Giảm giá</span>`;
+    } else {
+      priceDisplay.innerHTML = `<span class="amount">${this.formatPrice(price)}</span>`;
+    }
+
+    // Cập nhật SKU & Tồn kho
+    if (skuDisplay) skuDisplay.innerText = variant.sku;
+    if (stockDisplay) {
+      const qty = parseInt(variant.quantity);
+      stockDisplay.innerText = qty > 0 ? `Còn hàng (${qty})` : 'Hết hàng';
+      stockDisplay.style.color = qty > 0 ? '#28a745' : '#dc3545';
+    }
+  },
 };
