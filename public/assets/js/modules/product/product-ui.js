@@ -7,45 +7,73 @@ const ProductUI = {
   },
 
   // 1. Render danh sách lưới (Grid) - Dùng cho trang Shop & Related Product
+  // 1. Render danh sách lưới (Grid) - Dùng cho trang Shop & Related Product
   renderList(products, containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
     if (!products || products.length === 0) {
-      container.innerHTML = "<p>Không có sản phẩm.</p>";
+      container.innerHTML =
+        '<p class="text-center mt-5 w-100">Không có sản phẩm nào phù hợp.</p>';
       return;
     }
 
     container.innerHTML = products
-      .map(
-        (item) => `
+      .map((item) => {
+        // Xử lý logic hiển thị giá giảm hay giá gốc
+        let priceHtml = "";
+        if (item.sale_price > 0 && item.sale_price < item.price) {
+          priceHtml = `
+                <del>${this.formatPrice(item.price)}</del>
+                <span>${this.formatPrice(item.sale_price)}</span>
+            `;
+        } else {
+          priceHtml = `<span>${this.formatPrice(item.price)}</span>`;
+        }
+
+        return `
             <div class="col-md-6 col-lg-4 col-xl-3">
                 <div class="product-item">
                     <div class="product-img">
-                        <span class="type new">Mới</span>
-                        <a href="javascript:void(0)" onclick="ProductController.loadDetailNoReload(${item.id}, '${item.slug}')">
+                        ${item.sale_price > 0 && item.sale_price < item.price ? '<span class="type discount">Sale</span>' : '<span class="type new">Mới</span>'}
+                        
+                        <a href="${APP_URL}chi-tiet/${item.slug}" data-action="view-detail" data-id="${item.id}" data-slug="${item.slug}">
                             <img src="${APP_URL}public/assets/img/product/${item.thumbnail}" alt="${item.name}">
                         </a>
+                        
                         <div class="product-action-wrap">
                             <div class="product-action">
-                                <a href="javascript:void(0)" onclick="ProductController.openQuickView(${item.id})"><i class="far fa-eye"></i></a>
-                                <a href="#"><i class="far fa-heart"></i></a>
+                                <a href="${APP_URL}chi-tiet/${item.slug}" data-action="view-detail" data-id="${item.id}" data-slug="${item.slug}" data-tooltip="tooltip" title="Xem nhanh">
+                                    <i class="far fa-eye"></i>
+                                </a>
+                                <a href="javascript:void(0)" data-action="add-to-wishlist" data-id="${item.id}" data-tooltip="tooltip" title="Yêu thích">
+                                    <i class="far fa-heart"></i>
+                                </a>
                             </div>
                         </div>
                     </div>
                     <div class="product-content">
                         <h3 class="product-title">
-                            <a href="javascript:void(0)" onclick="ProductController.loadDetailNoReload(${item.id}, '${item.slug}')">${item.name}</a>
+                            <a href="${APP_URL}chi-tiet/${item.slug}" data-action="view-detail" data-id="${item.id}" data-slug="${item.slug}">
+                                ${item.name}
+                            </a>
                         </h3>
+                        <div class="product-rate">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        </div>
                         <div class="product-bottom">
-                            <div class="product-price"><span>${this.formatPrice(item.price)}</span></div>
-                            <button class="product-cart-btn" onclick="CartController.add(${item.id})"><i class="far fa-shopping-bag"></i></button>
+                            <div class="product-price">
+                                ${priceHtml}
+                            </div>
+                            <button type="button" class="product-cart-btn" data-action="add-to-cart" data-id="${item.id}" title="Thêm vào giỏ hàng">
+                                <i class="far fa-shopping-bag"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
-        `,
-      )
+        `;
+      })
       .join("");
   },
 

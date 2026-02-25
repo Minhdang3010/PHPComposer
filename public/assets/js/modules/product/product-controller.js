@@ -114,9 +114,9 @@ const ProductController = {
             const btnDetail = e.target.closest('[data-action="view-detail"]');
             if (btnDetail) {
                 e.preventDefault();
-                const id = btnDetail.getAttribute("data-id");
-                const slug = btnDetail.getAttribute("data-slug");
-                this.loadDetailNoReload(id, slug);
+                // Ép trình duyệt bay thẳng tới trang chi tiết
+                window.location.href = btnDetail.getAttribute("href");
+                return;
             }
 
             // 4.2. Sự kiện Thêm Yêu Thích
