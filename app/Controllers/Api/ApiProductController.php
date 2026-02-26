@@ -78,4 +78,20 @@ class ApiProductController extends Controller
         $products = $this->productModel->getTrendingProducts(8);
         $this->responseJson($products);
     }
+    // 8. API: Lấy danh sách biến thể của sản phẩm
+    public function variants($id = null)
+    {
+        if (!$id) {
+            $this->responseJson(['status' => 'error', 'message' => 'Thiếu ID sản phẩm'], 400);
+        }
+        
+        $variants = $this->productModel->getProductVariants($id);
+        
+        // THÊM ĐOẠN NÀY: Lặp qua từng biến thể để gắn thêm mảng "gallery" cho nó
+        foreach ($variants as $key => $v) {
+            $variants[$key]['gallery'] = $this->productModel->getImagesByVariant($v['id']);
+        }
+
+        $this->responseJson($variants);
+    }
 }

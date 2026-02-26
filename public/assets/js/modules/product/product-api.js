@@ -65,5 +65,16 @@ const ProductAPI = {
             console.error(error);
             return null;
         }
+    },
+    // 7. Lấy danh sách biến thể của 1 sản phẩm
+    async fetchVariants(productId) {
+        try {
+            const res = await fetch(`${APP_URL}api/product/variants/${productId}`);
+            if (!res.ok) throw new Error("Lỗi tải danh sách biến thể");
+            return await res.json();
+        } catch (error) {
+            console.error(error);
+            return [];
+        }
     }
 };

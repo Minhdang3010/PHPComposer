@@ -19,29 +19,69 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-9 col-lg-6 col-xxl-5">
-                    <div class="shop-single-gallery">
-                        <div class="flexslider-thumbnails">
-                            <ul class="slides">
-                                <li data-thumb="<?= BASE_URL ?>public/assets/img/product/<?= $product['thumbnail'] ?>">
-                                    <div class="thumb-img">
-                                        <img src="<?= BASE_URL ?>public/assets/img/product/<?= $product['thumbnail'] ?>" alt="<?= htmlspecialchars($product['name']) ?>">
-                                        <a href="<?= BASE_URL ?>public/assets/img/product/<?= $product['thumbnail'] ?>" class="popup-img"><i class="far fa-search-plus"></i></a>
-                                    </div>
-                                </li>
+                    <div class="custom-gallery">
+                        <div class="main-image-wrap mb-3 text-center">
+                            <img id="main-product-image" src="<?= BASE_URL ?>public/assets/img/product/<?= $product['thumbnail'] ?>" alt="<?= htmlspecialchars($product['name']) ?>">
+                        </div>
 
-                                <?php if (!empty($gallery)): ?>
-                                    <?php foreach ($gallery as $img): ?>
-                                        <li data-thumb="<?= BASE_URL ?>public/assets/img/product/<?= $img['image_url'] ?>">
-                                            <div class="thumb-img">
-                                                <img src="<?= BASE_URL ?>public/assets/img/product/<?= $img['image_url'] ?>" alt="Gallery Image">
-                                                <a href="<?= BASE_URL ?>public/assets/img/product/<?= $img['image_url'] ?>" class="popup-img"><i class="far fa-search-plus"></i></a>
-                                            </div>
-                                        </li>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
-                            </ul>
+                        <div class="thumbnail-list d-flex justify-content-center gap-2 flex-wrap">
+                            <div class="thumb-item active" data-image="<?= BASE_URL ?>public/assets/img/product/<?= $product['thumbnail'] ?>">
+                                <img src="<?= BASE_URL ?>public/assets/img/product/<?= $product['thumbnail'] ?>" alt="">
+                            </div>
+
+                            <?php if (!empty($gallery)): ?>
+                                <?php foreach ($gallery as $img): ?>
+                                    <div class="thumb-item" data-image="<?= BASE_URL ?>public/assets/img/product/<?= $img['image_url'] ?>">
+                                        <img src="<?= BASE_URL ?>public/assets/img/product/<?= $img['image_url'] ?>" alt="">
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </div>
                     </div>
+
+                    <style>
+                        .main-image-wrap {
+                            border: 1px solid #e0e0e0;
+                            border-radius: 12px;
+                            padding: 20px;
+                            background: #fff;
+                        }
+
+                        .main-image-wrap img {
+                            width: 100%;
+                            height: 400px;
+                            object-fit: contain;
+                            transition: opacity 0.2s ease;
+                        }
+
+                        .thumb-item {
+                            width: 70px;
+                            height: 70px;
+                            border: 1px solid #e0e0e0;
+                            border-radius: 8px;
+                            padding: 5px;
+                            cursor: pointer;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            background: #fff;
+                            transition: all 0.2s ease;
+                        }
+
+                        .thumb-item img {
+                            max-width: 100%;
+                            max-height: 100%;
+                            object-fit: contain;
+                        }
+
+                        .thumb-item.active {
+                            border: 2px solid #dc3545;
+                        }
+
+                        .thumb-item:hover {
+                            border-color: #dc3545;
+                        }
+                    </style>
                 </div>
 
                 <div class="col-md-12 col-lg-6 col-xxl-6">
@@ -53,22 +93,73 @@
                             <span class="rating-count"> (<?= $product['view_count'] ?> lượt xem)</span>
                         </div>
 
-                        <div class="shop-single-price">
-                            <?php if ($product['sale_price'] && $product['sale_price'] < $product['price']): ?>
-                                <del>$<?= number_format($product['price'], 2) ?></del>
-                                <span class="amount">$<?= number_format($product['sale_price'], 2) ?></span>
-                                <span class="discount-percentage">Giảm giá</span>
-                            <?php else: ?>
-                                <span class="amount">$<?= number_format($product['price'], 2) ?></span>
-                            <?php endif; ?>
+                        <div class="shop-single-price" id="display-price">
+                            <div class="spinner-border spinner-border-sm text-primary"></div> Đang tải giá...
                         </div>
 
                         <p class="mb-3">
                             <?= !empty($product['description']) ? nl2br(htmlspecialchars(substr(strip_tags($product['description']), 0, 150))) . '...' : 'Đang cập nhật mô tả...' ?>
                         </p>
 
-                        <form action="<?= BASE_URL ?>cart/add" method="POST">
+                        <form id="form-add-to-cart">
                             <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
+                            <input type="hidden" name="variant_id" id="selected-variant-id" value="">
+
+                            <?php if (!empty($variants)): ?>
+                                <div class="shop-single-variants mb-4">
+                                    <h6 class="mb-3">Chọn phiên bản:</h6>
+                                    <div class="variant-list" id="variant-selector">
+                                        <?php foreach ($variants as $index => $v): ?>
+                                            <?php
+                                            $name = trim(($v['color_name'] ?? '') . ' ' . ($v['size_name'] ?? ''));
+                                            if (empty($name)) $name = "Mặc định";
+                                            ?>
+                                            <label class="variant-item">
+                                                <input type="radio" name="choose_variant" value="<?= $v['id'] ?>" class="d-none" <?= $index === 0 ? 'checked' : '' ?>>
+                                                <span class="variant-btn"><?= htmlspecialchars($name) ?></span>
+                                            </label>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+
+                                <style>
+                                    .variant-list {
+                                        display: flex;
+                                        flex-wrap: wrap;
+                                        gap: 10px;
+                                    }
+
+                                    .variant-item {
+                                        cursor: pointer;
+                                        margin: 0;
+                                    }
+
+                                    .variant-btn {
+                                        display: inline-block;
+                                        padding: 8px 16px;
+                                        border: 2px solid #e0e0e0;
+                                        border-radius: 6px;
+                                        background: #fff;
+                                        transition: all 0.2s ease;
+                                        font-size: 14px;
+                                        font-weight: 500;
+                                        color: #555;
+                                        user-select: none;
+                                    }
+
+                                    .variant-item:hover .variant-btn {
+                                        border-color: #0d6efd;
+                                        color: #0d6efd;
+                                    }
+
+                                    .variant-item input:checked+.variant-btn {
+                                        background: #0d6efd;
+                                        color: #fff;
+                                        border-color: #0d6efd;
+                                        box-shadow: 0 4px 10px rgba(13, 110, 253, 0.25);
+                                    }
+                                </style>
+                            <?php endif; ?>
 
                             <div class="shop-single-cs">
                                 <div class="row">
@@ -77,7 +168,7 @@
                                             <h6>Số lượng</h6>
                                             <div class="shop-cart-qty">
                                                 <button type="button" class="minus-btn"><i class="fal fa-minus"></i></button>
-                                                <input class="quantity" name="quantity" type="text" value="1" readonly>
+                                                <input class="quantity" id="buy-quantity" name="quantity" type="text" value="1" readonly>
                                                 <button type="button" class="plus-btn"><i class="fal fa-plus"></i></button>
                                             </div>
                                         </div>
@@ -87,17 +178,19 @@
 
                             <div class="shop-single-action">
                                 <div class="row align-items-center">
-                                    <div class="col-md-6 col-lg-12 col-xl-6">
-                                        <div class="shop-single-btn">
-                                            <button type="button"
-                                                class="product-list-btn"
-                                                onclick="addToCart(<?= $product['id'] ?>)"
-                                                data-bs-placement="left"
-                                                data-tooltip="tooltip"
-                                                title="Thêm vào giỏ hàng">
-                                                <i class="far fa-shopping-bag"></i>
+                                    <div class="col-md-12 col-lg-12 col-xl-12">
+                                        <div class="shop-single-btn d-flex gap-2">
+                                            <button type="button" class="theme-btn" id="btn-add-cart">
+                                                <i class="far fa-shopping-bag"></i> Thêm giỏ hàng
                                             </button>
-                                            <a href="#" class="theme-btn theme-btn2" title="Thêm vào yêu thích"><span class="far fa-heart"></span></a>
+
+                                            <button type="button" class="theme-btn theme-btn2" id="btn-buy-now">
+                                                Mua ngay
+                                            </button>
+
+                                            <a href="javascript:void(0)" class="theme-btn theme-btn2" data-action="add-to-wishlist" data-id="<?= $product['id'] ?>" title="Thêm vào yêu thích">
+                                                <span class="far fa-heart"></span>
+                                            </a>
                                         </div>
                                     </div>
                                 </div>
@@ -107,10 +200,9 @@
                         <div class="shop-single-sortinfo">
                             <ul>
                                 <li>Thương hiệu: <span><?= $product['brand_name'] ?? 'Đang cập nhật' ?></span></li>
-                                <li>Danh mục: <span><a href="<?= BASE_URL ?>danh-muc/<?= $product['category_id'] // Hoặc slug category nếu có 
-                                                                                        ?>"><?= $product['category_name'] ?? 'Chung' ?></a></span></li>
-                                <li>Tình trạng: <span class="stock">Còn hàng</span></li>
-                                <li>SKU: <span>SKU-<?= $product['id'] ?></span></li>
+                                <li>Danh mục: <span><a href="<?= BASE_URL ?>danh-muc/<?= $product['category_id'] ?>"><?= $product['category_name'] ?? 'Chung' ?></a></span></li>
+                                <li>Tình trạng: <span class="stock" id="display-stock">Đang tải...</span></li>
+                                <li>SKU: <span id="display-sku">Đang tải...</span></li>
                             </ul>
                         </div>
                     </div>
@@ -127,8 +219,10 @@
                 </nav>
                 <div class="tab-content" id="nav-tabContent">
                     <div class="tab-pane fade show active" id="tab1" role="tabpanel">
-                        <div class="shop-single-desc">
-                            <p><?= !empty($product['description']) ? $product['description'] : 'Chưa có mô tả chi tiết cho sản phẩm này.' ?></p>
+                        <div class="shop-single-desc" id="description">
+                            <div class="desc-content">
+                                <p><?= !empty($product['description']) ? $product['description'] : 'Chưa có mô tả chi tiết cho sản phẩm này.' ?></p>
+                            </div>
                         </div>
                     </div>
                     <div class="tab-pane fade" id="tab2" role="tabpanel">
@@ -155,6 +249,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="row g-4">
                 <?php if (!empty($relatedProducts)): ?>
                     <?php foreach ($relatedProducts as $item): ?>
@@ -163,24 +258,50 @@
                         <div class="col-md-6 col-lg-3">
                             <div class="product-item">
                                 <div class="product-img">
-                                    <a href="<?= BASE_URL ?>chi-tiet/<?= $item['slug'] ?>">
+                                    <?php if ($item['sale_price'] > 0 && $item['sale_price'] < $item['price']): ?>
+                                        <span class="type discount">Sale</span>
+                                    <?php else: ?>
+                                        <span class="type new">Mới</span>
+                                    <?php endif; ?>
+
+                                    <a href="<?= BASE_URL ?>chi-tiet/<?= $item['slug'] ?>" data-action="view-detail" data-id="<?= $item['id'] ?>" data-slug="<?= $item['slug'] ?>">
                                         <img src="<?= BASE_URL ?>public/assets/img/product/<?= $item['thumbnail'] ?>" alt="<?= htmlspecialchars($item['name']) ?>">
                                     </a>
+
+                                    <div class="product-action-wrap">
+                                        <div class="product-action">
+                                            <a href="<?= BASE_URL ?>chi-tiet/<?= $item['slug'] ?>" data-action="view-detail" data-id="<?= $item['id'] ?>" data-slug="<?= $item['slug'] ?>" data-tooltip="tooltip" title="Xem nhanh">
+                                                <i class="far fa-eye"></i>
+                                            </a>
+                                            <a href="javascript:void(0)" data-action="add-to-wishlist" data-id="<?= $item['id'] ?>" data-tooltip="tooltip" title="Yêu thích">
+                                                <i class="far fa-heart"></i>
+                                            </a>
+                                        </div>
+                                    </div>
                                 </div>
+
                                 <div class="product-content">
                                     <h3 class="product-title">
-                                        <a href="<?= BASE_URL ?>chi-tiet/<?= $item['slug'] ?>"><?= htmlspecialchars($item['name']) ?></a>
+                                        <a href="<?= BASE_URL ?>chi-tiet/<?= $item['slug'] ?>" data-action="view-detail" data-id="<?= $item['id'] ?>" data-slug="<?= $item['slug'] ?>">
+                                            <?= htmlspecialchars($item['name']) ?>
+                                        </a>
                                     </h3>
+
+                                    <div class="product-rate">
+                                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                                    </div>
+
                                     <div class="product-bottom">
                                         <div class="product-price">
-                                            <span>$<?= number_format($item['price'], 2) ?></span>
+                                            <?php if ($item['sale_price'] > 0 && $item['sale_price'] < $item['price']): ?>
+                                                <del>$<?= number_format($item['price'], 2) ?></del>
+                                                <span>$<?= number_format($item['sale_price'], 2) ?></span>
+                                            <?php else: ?>
+                                                <span>$<?= number_format($item['price'], 2) ?></span>
+                                            <?php endif; ?>
                                         </div>
-                                        <button type="button"
-                                            class="product-list-btn"
-                                            onclick="addToCart(<?= $product['id'] ?>)"
-                                            data-bs-placement="left"
-                                            data-tooltip="tooltip"
-                                            title="Thêm vào giỏ hàng">
+
+                                        <button type="button" class="product-cart-btn" data-action="add-to-cart" data-id="<?= $item['id'] ?>" title="Thêm vào giỏ hàng">
                                             <i class="far fa-shopping-bag"></i>
                                         </button>
                                     </div>
@@ -190,7 +311,7 @@
                     <?php endforeach; ?>
                 <?php else: ?>
                     <div class="col-12">
-                        <p>Không có sản phẩm liên quan.</p>
+                        <p class="text-muted">Không có sản phẩm liên quan.</p>
                     </div>
                 <?php endif; ?>
             </div>

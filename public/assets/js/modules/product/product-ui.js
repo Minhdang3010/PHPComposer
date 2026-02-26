@@ -202,4 +202,97 @@ const ProductUI = {
     // Scroll lên đầu trang cho người dùng thấy
     window.scrollTo({ top: 0, behavior: "smooth" });
   },
+  // 4. Cập nhật thông tin biến thể trên trang Chi tiết
+  updateVariantInfo(variant) {
+    if (!variant) return;
+
+    const priceDisplay = document.getElementById("display-price");
+    const inputVariantId = document.getElementById("selected-variant-id");
+    const skuDisplay = document.getElementById("display-sku");
+    const stockDisplay = document.getElementById("display-stock");
+
+    // XỬ LÝ ẢNH BIẾN THỂ (ẢNH ĐƠN + NHIỀU ẢNH THUMBNAIL)
+    if (variant.image) {
+      // 1. Đổi ảnh chính mượt mà
+      const newSrc = `${APP_URL}public/assets/img/product/${variant.image}`;
+      this.changeMainImage(newSrc);
+
+      // 2. Vẽ lại dãy Thumbnail ở dưới nếu biến thể này có nhiều ảnh (gallery)
+      const thumbnailList = document.querySelector(".thumbnail-list");
+      if (thumbnailList && variant.gallery && variant.gallery.length > 0) {
+        // Xóa sạch dãy thumbnail chung chung cũ
+        thumbnailList.innerHTML = "";
+
+        // Bơm Thumbnail của ảnh đại diện biến thể vào làm cái đầu tiên (Mặc định được active)
+        thumbnailList.innerHTML += `
+                <div class="thumb-item active" data-image="${newSrc}">
+                    <img src="${newSrc}" alt="">
+                </div>
+            `;
+
+        // Bơm tiếp các ảnh từ mảng gallery của biến thể
+        variant.gallery.forEach((imgUrl) => {
+          const fullImgUrl = `${APP_URL}public/assets/img/product/${imgUrl}`;
+          thumbnailList.innerHTML += `
+                    <div class="thumb-item" data-image="${fullImgUrl}">
+                        <img src="${fullImgUrl}" alt="">
+                    </div>
+                `;
+        });
+
+        // Sau khi vẽ lại DOM (các thẻ div thumbnail mới), ta phải dạy cho JS cách bắt sự kiện click lại từ đầu
+        if (
+          typeof ProductController !== "undefined" &&
+          ProductController.initGallery
+        ) {
+          ProductController.initGallery();
+        }
+      }
+    }
+
+    // Cập nhật input ẩn để chuẩn bị submit Form thêm vào giỏ
+    if (inputVariantId) inputVariantId.value = variant.id;
+
+    // Cập nhật giá mượt mà
+    const price = parseFloat(variant.price);
+    const salePrice = parseFloat(variant.sale_price);
+
+    if (salePrice > 0 && salePrice < price) {
+      priceDisplay.innerHTML = `
+        <del>${this.formatPrice(price)}</del> 
+        <span class="amount">${this.formatPrice(salePrice)}</span> 
+        <span class="discount-percentage">Giảm giá</span>`;
+    } else {
+      priceDisplay.innerHTML = `<span class="amount">${this.formatPrice(price)}</span>`;
+    }
+
+    // Cập nhật SKU & Tồn kho
+    if (skuDisplay) skuDisplay.innerText = variant.sku;
+    if (stockDisplay) {
+      const qty = parseInt(variant.quantity);
+      stockDisplay.innerText = qty > 0 ? `Còn hàng (${qty})` : "Hết hàng";
+      stockDisplay.style.color = qty > 0 ? "#28a745" : "#dc3545";
+    }
+  },
+
+  // 5. Thay đổi ảnh chính (Gallery) mượt mà (Hàm bổ trợ cho tính năng ở trên)
+  changeMainImage(newSrc, thumbElement = null) {
+    const mainImg = document.getElementById("main-product-image");
+    if (!mainImg) return;
+
+    // Nếu có click vào thumbnail -> Xóa viền cũ, thêm viền đỏ mới
+    if (thumbElement) {
+      document
+        .querySelectorAll(".thumb-item")
+        .forEach((t) => t.classList.remove("active"));
+      thumbElement.classList.add("active");
+    }
+
+    // Hiệu ứng mờ chuyển ảnh
+    mainImg.style.opacity = 0.5;
+    setTimeout(() => {
+      mainImg.src = newSrc;
+      mainImg.style.opacity = 1;
+    }, 150);
+  },
 };
