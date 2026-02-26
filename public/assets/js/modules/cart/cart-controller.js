@@ -34,12 +34,11 @@ const CartController = {
 
         // --- B. Sự kiện THÊM VÀO GIỎ (Từ bất kỳ đâu trên trang) ---
         document.body.addEventListener("click", (e) => {
-            // Tìm xem người dùng có click vào thẻ nào mang data-action="add-to-cart" không
             const btnCart = e.target.closest('[data-action="add-to-cart"]');
             if (btnCart) {
                 e.preventDefault(); // Chặn nhảy trang
                 const productId = btnCart.getAttribute('data-id');
-                this.addToCart(productId); // Gọi hàm thêm giỏ hàng có sẵn ở dưới
+                this.addToCart(productId);
             }
         });
 
@@ -55,7 +54,8 @@ const CartController = {
             });
         }
 
-        const btnApplyVoucher = document.getElementById("btn-apply-voucher-cart");
+        // CHỖ FIX LỖI SỐ 1: Bỏ chữ "-cart" để khớp với ID của nút trong file PHP
+        const btnApplyVoucher = document.getElementById("btn-apply-voucher");
         if (btnApplyVoucher) {
             btnApplyVoucher.addEventListener("click", () => this.handleApplyVoucher());
         }
@@ -76,13 +76,11 @@ const CartController = {
     },
 
     // 3. Các hàm Logic nghiệp vụ
-    
-    // Logic mới: Thêm sản phẩm vào giỏ
     async addToCart(id) {
         const result = await CartAPI.addToCart(id);
         if (result.status === "success") {
             alert(result.message);
-            await this.refreshCart(); // Cập nhật ngay con số trên Header (renderHeaderCount)
+            await this.refreshCart();
         } else {
             alert(result.message);
         }
@@ -95,14 +93,17 @@ const CartController = {
         const items = Object.values(result.items);
         CartUI.renderHeaderCount(items.reduce((sum, item) => sum + item.quantity, 0));
         
-        // Chỉ render bảng nếu đang ở trang giỏ hàng
+        // CHỖ FIX LỖI SỐ 2: Tách renderSummary ra khỏi điều kiện cart-body
         if(document.getElementById("cart-body")) {
             CartUI.renderCartTable(items);
+        }
+        
+        // Miễn là trang có khu vực hiển thị Tóm tắt (có #cart_subtotal) là cho render luôn
+        if (document.getElementById("cart_subtotal")) {
             CartUI.renderSummary(result);
         }
     },
 
-    // ... (Giữ nguyên các hàm updateQty, removeItem, refreshAddresses, v.v. của bạn bên dưới)
     async updateQty(id, delta) {
         const result = await CartAPI.updateQuantity(id, delta);
         this.refreshDataAfterUpdate(result);
@@ -116,8 +117,8 @@ const CartController = {
 
     refreshDataAfterUpdate(result) {
         const items = Object.values(result.items);
-        CartUI.renderCartTable(items);
-        CartUI.renderSummary(result);
+        if (document.getElementById("cart-body")) CartUI.renderCartTable(items);
+        if (document.getElementById("cart_subtotal")) CartUI.renderSummary(result);
         CartUI.renderHeaderCount(items.reduce((s, i) => s + i.quantity, 0));
     },
 
@@ -139,7 +140,7 @@ const CartController = {
         alert(result.message);
         
         if (result.status === "success") {
-            await this.refreshCart();
+            await this.refreshCart(); // Reset lại bảng giá
             const modalEl = document.getElementById("voucherModal");
             const modal = bootstrap.Modal.getInstance(modalEl);
             if (modal) modal.hide();
@@ -148,7 +149,7 @@ const CartController = {
 
     async processCheckout() {
         const selectedAddress = document.querySelector('input[name="address_id"]:checked');
-        if (!selectedAddress) return alert("Vui lòng chọn địa chỉ!");
+        if (!selectedAddress) return alert("Vui lòng chọn địa chỉ nhận hàng!");
         
         if (!confirm("Xác nhận đặt hàng?")) return;
 
@@ -163,14 +164,15 @@ const CartController = {
 
             if (result.status === "success") {
                 alert("Đặt hàng thành công!");
-                window.location.href = `${APP_URL}`;
+                // Sửa nhẹ chỗ này để chuyển đúng trang hoàn tất
+                window.location.href = `${APP_URL}hoan-tat-don-hang?code=${result.order_id || ''}`;
             } else {
                 alert(result.message);
-                if(btn) { btn.innerText = "THANH TOÁN NGAY"; btn.disabled = false; }
+                if(btn) { btn.innerText = "Hoàn tất đặt hàng"; btn.disabled = false; }
             }
         } catch (e) {
             console.error(e);
-            alert("Lỗi kết nối!");
+            alert("Lỗi kết nối Server!");
             if(btn) btn.disabled = false;
         }
     },

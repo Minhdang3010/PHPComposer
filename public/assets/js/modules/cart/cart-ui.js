@@ -48,6 +48,7 @@ const CartUI = {
         const elTotal = document.getElementById("cart_total");
         const elCheckoutList = document.getElementById("checkout-item-list");
 
+        // 1. Cập nhật các con số tổng tiền
         if (elSubtotal) elSubtotal.innerText = this.formatCurrency(result.subtotal || 0);
         
         if (elDiscount) {
@@ -57,16 +58,39 @@ const CartUI = {
         
         if (elTotal) elTotal.innerText = this.formatCurrency(result.total || 0);
 
+        // 2. VẼ LẠI DANH SÁCH SẢN PHẨM CÓ HÌNH ẢNH VÀ CHI TIẾT
         if (elCheckoutList) {
-            elCheckoutList.innerHTML = Object.values(result.items).map((item) => `
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="small">${item.quantity}x ${item.name}</span>
-                    <span class="small fw-bold">${this.formatCurrency(item.price * item.quantity)}</span>
-                </div>
-            `).join("");
+            if (Object.keys(result.items).length === 0) {
+                elCheckoutList.innerHTML = '<div class="text-center text-muted py-3">Giỏ hàng trống</div>';
+            } else {
+                elCheckoutList.innerHTML = Object.values(result.items).map((item) => `
+                    <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-light">
+                        <div class="d-flex align-items-center gap-3" style="width: 75%;">
+                            <div class="position-relative">
+                                <img src="${APP_URL}public/assets/img/product/${item.image}" alt="${item.name}" 
+                                     style="width: 65px; height: 65px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 8px; background: #fff; padding: 2px;">
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-secondary shadow-sm" style="font-size: 0.75rem;">
+                                    ${item.quantity}
+                                </span>
+                            </div>
+                            
+                            <div class="pe-2">
+                                <h6 class="mb-1 text-dark fw-semibold" style="font-size: 0.85rem; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                    ${item.name}
+                                </h6>
+                                <small class="text-muted d-block">${this.formatCurrency(item.price)}</small>
+                            </div>
+                        </div>
+                        
+                        <div class="text-end fw-bold text-dark" style="font-size: 0.95rem;">
+                            ${this.formatCurrency(item.price * item.quantity)}
+                        </div>
+                    </div>
+                `).join("");
+            }
         }
 
-        // Logic hiển thị Voucher code
+        // 3. Logic hiển thị thông báo Voucher (Giữ nguyên)
         const couponCode = result.coupon_code || "";
         const couponElements = [
             { input: "checkout_coupon_code", msg: "checkout_coupon_msg" },
@@ -80,7 +104,7 @@ const CartUI = {
             if (msgEl) {
                 if (couponCode) {
                     msgEl.innerText = "Đã áp dụng mã: " + couponCode;
-                    msgEl.className = "text-success mt-1 fw-bold d-block";
+                    msgEl.className = "text-success mt-1 fw-bold d-block small";
                 } else {
                     msgEl.innerText = "";
                     msgEl.className = "d-none";
