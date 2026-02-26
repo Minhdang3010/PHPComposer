@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 class CartSession
@@ -10,39 +9,45 @@ class CartSession
         return isset($_SESSION['cart']) ? $_SESSION['cart'] : [];
     }
 
-    // Thêm sản phẩm
-    public function add($product, $quantity = 1)
+    // Thêm Biến thể vào giỏ hàng
+    public function addVariant($variant, $quantity = 1)
     {
         if (!isset($_SESSION['cart'])) {
             $_SESSION['cart'] = [];
         }
 
-        $id = $product['id'];
+        $id = $variant['id']; // Đây là ID của bảng product_variants
 
-        // 1. Logic lấy giá an toàn: Ưu tiên sale_price, nếu không có lấy price
-        $originPrice = isset($product['price']) ? (float)$product['price'] : 0;
-        $salePrice = isset($product['sale_price']) ? (float)$product['sale_price'] : 0;
+        // 1. Logic nối tên: (VD: Macbook Air M2 (Space Gray - 13 inch))
+        $attr = [];
+        if (!empty($variant['color_name'])) $attr[] = $variant['color_name'];
+        if (!empty($variant['size_name'])) $attr[] = $variant['size_name'];
+        $attrString = implode(' - ', $attr);
+        $displayName = $variant['product_name'] . ($attrString ? " ($attrString)" : "");
 
-        // Nếu có giá sale và giá sale nhỏ hơn giá gốc thì lấy giá sale
-        $finalPrice = ($salePrice > 0 && $salePrice < $originPrice) ? $salePrice : $originPrice;
+        // 2. Logic lấy giá: Ưu tiên giá Sale của biến thể đó
+        $price = ($variant['sale_price'] > 0 && $variant['sale_price'] < $variant['price']) 
+                 ? $variant['sale_price'] : $variant['price'];
 
+        // 3. Logic lấy ảnh: Ưu tiên ảnh của Biến thể, nếu không có lấy ảnh Product
+        $image = !empty($variant['image']) ? $variant['image'] : $variant['product_image'];
+
+        // 4. Đẩy vào Session
         if (isset($_SESSION['cart'][$id])) {
             $_SESSION['cart'][$id]['quantity'] += $quantity;
         } else {
             $_SESSION['cart'][$id] = [
-                'id' => $id,
-                'name' => $product['name'] ?? 'Sản phẩm không tên',
-                'price' => $finalPrice, // Đảm bảo đây là con số cụ thể
-                'image' => $product['thumbnail'] ?? ($product['image'] ?? 'default.jpg'),
-                'quantity' => (int)$quantity
+                'id'         => $id,
+                'product_id' => $variant['product_id'],
+                'name'       => $displayName,
+                'price'      => (float)$price,
+                'image'      => $image,
+                'quantity'   => (int)$quantity
             ];
         }
     }
 
-    /**
-     * HÀM CẬP NHẬT SỐ LƯỢNG
-     * Nếu quantity <= 0 thì tự động gọi hàm remove để xóa sản phẩm
-     */
+    // Cập nhật số lượng
     public function update($id, $quantity)
     {
         if (isset($_SESSION['cart'][$id])) {
@@ -54,9 +59,7 @@ class CartSession
         }
     }
 
-    /**
-     * HÀM XÓA SẢN PHẨM (Mày đang thiếu cái này)
-     */
+    // Xóa khỏi giỏ
     public function remove($id)
     {
         if (isset($_SESSION['cart'][$id])) {
@@ -64,22 +67,12 @@ class CartSession
         }
     }
 
-    // Tính tổng tiền giỏ hàng
-    public function total()
-    {
-        $total = 0;
-        $items = $this->getContent();
-        foreach ($items as $item) {
-            $total += $item['price'] * $item['quantity'];
-        }
-        return $total;
-    }
-
-    // Làm trống giỏ hàng (Dùng sau khi thanh toán thành công)
+    // Xóa sạch giỏ hàng (Dùng khi checkout xong)
     public function clear()
     {
         unset($_SESSION['cart']);
     }
+
     // Tính tiền hàng gốc
     public function getSubtotal()
     {

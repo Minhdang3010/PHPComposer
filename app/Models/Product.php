@@ -279,4 +279,21 @@ class Product extends BaseModel
         // Trả về thẳng 1 mảng đơn giản: ['anh1.jpg', 'anh2.jpg']
         return $stmt->fetchAll(\PDO::FETCH_COLUMN); 
     }
+    // Lấy thông tin chi tiết của 1 biến thể (Kèm tên Sản phẩm, tên Màu, tên Size) để cho vào giỏ hàng
+    public function getVariantFullInfo($variant_id)
+    {
+        $query = "SELECT pv.*, p.name as product_name, p.thumbnail as product_image, 
+                         c.name as color_name, s.name as size_name
+                  FROM product_variants pv 
+                  JOIN products p ON pv.product_id = p.id
+                  LEFT JOIN colors c ON pv.color_id = c.id
+                  LEFT JOIN sizes s ON pv.size_id = s.id
+                  WHERE pv.id = :id AND p.status = 1";
+                  
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindValue(':id', $variant_id, \PDO::PARAM_INT);
+        $stmt->execute();
+        
+        return $stmt->fetch(\PDO::FETCH_ASSOC);
+    }
 }

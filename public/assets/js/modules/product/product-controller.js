@@ -224,18 +224,18 @@ const ProductController = {
   // 6. KHỞI TẠO TRANG CHI TIẾT SẢN PHẨM
   // =====================================================================
   initDetailPage: async function () {
-    const variantSelector = document.getElementById("variant-selector");
     const productIdInput = document.querySelector('input[name="product_id"]');
-
-    // Nếu không có input này -> Không phải trang chi tiết -> Dừng
-    if (!productIdInput) return;
+    if (!productIdInput) return; // Nếu không có input này -> Không phải trang chi tiết -> Dừng
 
     // Gọi chức năng đổi ảnh gallery khởi động
-    this.initGallery();
+    if (typeof ProductController.initGallery === "function") {
+      ProductController.initGallery();
+    }
+
     const productId = productIdInput.value;
     const variants = await ProductAPI.fetchVariants(productId);
 
-    // MỚI SỬA: Lắng nghe sự kiện từ các nút Radio thay vì Select
+    // Xử lý đổi biến thể (Radio Buttons)
     const variantRadios = document.querySelectorAll(
       'input[name="choose_variant"]',
     );
@@ -258,35 +258,85 @@ const ProductController = {
       }
     }
 
-    // Xử lý nút Mua Ngay
-    const btnBuyNow = document.getElementById("btn-buy-now");
-    if (btnBuyNow) {
-      btnBuyNow.addEventListener("click", (e) => {
-        e.preventDefault();
-        const variantId = document.getElementById("selected-variant-id").value;
-        const qty = document.getElementById("buy-quantity").value;
+    // ==========================================
+    // TÍNH NĂNG 1: Nút Tăng/Giảm số lượng
+    // ==========================================
+    const minusBtn = document.querySelector(".minus-btn");
+    const plusBtn = document.querySelector(".plus-btn");
+    const qtyInput = document.getElementById("buy-quantity");
 
-        console.log("Xử lý Mua Ngay. Variant:", variantId, "Qty:", qty);
-        // Gắn logic CartAPI tương lai vào đây
-        // Mẫu: await CartAPI.add(variantId, qty);
-        // window.location.href = APP_URL + "thanh-toan";
-        alert(
-          `Đang chuyển hướng qua trang Thanh toán cho biến thể ${variantId}`,
-        );
+    if (minusBtn && plusBtn && qtyInput) {
+      minusBtn.addEventListener("click", () => {
+        let currentVal = parseInt(qtyInput.value) || 1;
+        if (currentVal > 1) qtyInput.value = currentVal - 1;
+      });
+      plusBtn.addEventListener("click", () => {
+        let currentVal = parseInt(qtyInput.value) || 1;
+        qtyInput.value = currentVal + 1;
       });
     }
 
-    // Xử lý nút Thêm giỏ hàng (Form)
+    // ==========================================
+    // TÍNH NĂNG 2: Xử lý nút Thêm giỏ hàng
+    // ==========================================
     const btnAddCart = document.getElementById("btn-add-cart");
     if (btnAddCart) {
-      btnAddCart.addEventListener("click", (e) => {
+      btnAddCart.addEventListener("click", async (e) => {
         e.preventDefault();
         const variantId = document.getElementById("selected-variant-id").value;
         const qty = document.getElementById("buy-quantity").value;
 
-        console.log("Xử lý Thêm giỏ hàng. Variant:", variantId, "Qty:", qty);
-        // Gắn logic CartAPI tương lai vào đây
-        alert(`Đã thêm ${qty} sản phẩm (ID: ${variantId}) vào giỏ!`);
+        if (!variantId) return alert("Vui lòng chọn phiên bản trước!");
+
+        // Đổi nút thành trạng thái Loading
+        const originalText = btnAddCart.innerHTML;
+        btnAddCart.innerHTML =
+          '<i class="fas fa-spinner fa-spin"></i> Đang thêm...';
+        btnAddCart.disabled = true;
+
+        try {
+          const res = await CartAPI.addToCart(variantId, parseInt(qty));
+          if (res.status === "success") {
+            alert("Đã thêm vào giỏ hàng thành công!");
+            // Cập nhật số lượng trên icon giỏ hàng ở Header
+            if (typeof CartController !== "undefined")
+              CartController.refreshCart();
+          } else {
+            alert(res.message || "Có lỗi xảy ra");
+          }
+        } catch (err) {
+          alert("Lỗi kết nối Server!");
+        }
+
+        // Trả nút về bình thường
+        btnAddCart.innerHTML = originalText;
+        btnAddCart.disabled = false;
+      });
+    }
+
+    // ==========================================
+    // TÍNH NĂNG 3: Xử lý nút Mua Ngay
+    // ==========================================
+    const btnBuyNow = document.getElementById("btn-buy-now");
+    if (btnBuyNow) {
+      btnBuyNow.addEventListener("click", async (e) => {
+        e.preventDefault();
+        const variantId = document.getElementById("selected-variant-id").value;
+        const qty = document.getElementById("buy-quantity").value;
+
+        if (!variantId) return alert("Vui lòng chọn phiên bản trước!");
+
+        btnBuyNow.innerText = "Đang xử lý...";
+        btnBuyNow.disabled = true;
+
+        const res = await CartAPI.addToCart(variantId, parseInt(qty));
+        if (res.status === "success") {
+          window.location.href = APP_URL + "thanh-toan"; // Chuyển thẳng tới trang Checkout
+        } else {
+          alert(res.message || "Có lỗi xảy ra");
+          btnBuyNow.innerText = "Mua Ngay";
+          btnBuyNow.disabled = false;
+        }
       });
     }
   },
