@@ -60,11 +60,13 @@ class ProductController extends Controller
 
         // 3. Lấy sản phẩm liên quan
         $relatedProducts = $this->productModel->getProductsByCategory($product['category_id'], 4);
-
+        //  4. Lấy biến thể sản phẩm (nếu có)
+        $variants = $this->productModel->getProductVariants($realProductId);
         $data = [
             'product' => $product,
             'gallery' => $gallery,
             'relatedProducts' => $relatedProducts,
+            'variants' => $variants,
             'title' => $product['name'] . ' - Mocart'
         ];
 

@@ -268,4 +268,15 @@ class Product extends BaseModel
         $stmt->execute();
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
+    // Lấy bộ sưu tập ảnh riêng của từng biến thể
+    public function getImagesByVariant($variant_id)
+    {
+        $query = "SELECT image_url FROM product_images WHERE variant_id = :variant_id";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindValue(':variant_id', $variant_id, \PDO::PARAM_INT);
+        $stmt->execute();
+        
+        // Trả về thẳng 1 mảng đơn giản: ['anh1.jpg', 'anh2.jpg']
+        return $stmt->fetchAll(\PDO::FETCH_COLUMN); 
+    }
 }
